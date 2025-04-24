@@ -20,17 +20,34 @@ $datos = file_get_contents('php://input');  //  $datos es un string, y no un obj
 $objeto = json_decode($datos);
 
 if ($objeto != null) {
-    switch ($objeto -> accion) {
+    switch ($objeto->accion) {
 
         //Listar
         case 'ListarUsuarios':
             print json_encode($modelo->ListarUsuarios());
             break;
 
+        case 'ObtenerIdUsuario':
+            print json_encode($modelo->ObtenerIdUsuario($objeto->id));
+            break;
 
         //Insertar
         case 'InsertarUsuario':
             $modelo->InsertarUsuario($objeto->usuario);
+            break;
+
+        //Modificar (Actualizar)
+        case 'EditarUsuario':
+            $modelo->EditarUsuario($objeto->usuario);
+            break;
+
+        //Borrar
+        case 'BorrarUsuario':
+            $modelo->BorrarUsuario($objeto->id);
+            if ($objeto->listado == "OK")
+                print json_encode($modelo->ListarUsuarios());
+            else
+                print '{"result":"OK"}';
             break;
     }
 }

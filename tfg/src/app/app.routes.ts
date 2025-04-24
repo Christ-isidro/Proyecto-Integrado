@@ -10,5 +10,9 @@ export const routes: Routes = [
     {
         path: "usuario-nuevo/:id",
         component: FormUsuariosComponent
+    },
+    {
+        path: "usuario-editar/:id",
+        component: FormUsuariosComponent
     }
 ];

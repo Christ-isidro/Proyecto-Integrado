@@ -15,6 +15,7 @@ import { identifierName } from '@angular/compiler';
 export class FormUsuariosComponent {
   public usuario: Usuario = <Usuario>{};
   public textoBoton: string;
+  public textoPassword: string;
   public form: FormGroup;
 
   constructor(private peticion: UsuarioService, private router: Router, private ar: ActivatedRoute, private formBuilder: FormBuilder) {
@@ -22,10 +23,11 @@ export class FormUsuariosComponent {
       id: this.formBuilder.control("-1"),
       nombre: this.formBuilder.control('', [Validators.required]),
       email: this.formBuilder.control('', [Validators.required]),
-      password: this.formBuilder.control('', [Validators.required]),
-      rol: this.formBuilder.control('participante')
+      password: this.formBuilder.control('', [Validators.required, Validators.minLength(8)]),
+      rol: this.formBuilder.control('', [Validators.required]),
     });
     this.textoBoton = 'Agregar';
+    this.textoPassword = 'Contraseña'
   }
 
   onSubmit() {
@@ -38,13 +40,43 @@ export class FormUsuariosComponent {
           console.log('np: ', datos);
           this.router.navigate(['/']);
         });
-      // } else {
-      //   this.peticion.editar(this.form.value).subscribe(
-      //     datos => {
-      //       console.log('Datos: ', datos);
-      //       this.router.navigate(['/']);
-      //     });
-      // }
+    } else {
+      this.peticion.EditarUsuario(this.form.value).subscribe(
+        datos => {
+          console.log('Datos: ', datos);
+          this.router.navigate(['/']);
+        });
+    }
+  }
+
+  ngOnInit() {
+    const idUsuario = this.ar.snapshot.params['id'];
+    console.log('id: ', idUsuario);
+
+    if (idUsuario == -1) {
+      this.textoBoton = "Agregar";
+    } else {
+      this.textoBoton = "Guardar cambios";
+      this.textoPassword = "Nueva contraseña";
+
+      this.peticion.ObtenerIdUsuario(idUsuario).subscribe({
+        next: res => {
+          this.usuario = res;
+          console.log(res);
+          this.form.setValue({
+            id: this.usuario.id,          // Asignar el id
+            nombre: this.usuario.nombre,  // Asignar el nombre
+            email: this.usuario.email,    // Asignar el email
+            password: '',                 // Dejar el campo de la contraseña vacío (si lo estás editando)
+            rol: this.usuario.rol         // Asignar el rol
+          });
+          console.log(res);
+        },
+        error: error => {
+          console.error('error!', error);
+        }
+      });
     }
   }
 }
+
