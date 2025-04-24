@@ -1,0 +1,28 @@
+<div class="container">
+    <h1>Usuarios</h1>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Password</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (usuario of usuarios; track $index) {
+            <tr>
+                <td>{{ usuario.id }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.email }}</td>
+                <td>{{ usuario.password }}</td>
+                <td>{{ usuario.rol }}</td>
+                <td><button (click)="editarUsuario(usuario)">Editar</button><button (click)="eliminarUsuario(usuario.id)">Eliminar</button></td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    <button type="button" (click)="nuevoUsuario()">Nuevo Usuario</button>
+</div>

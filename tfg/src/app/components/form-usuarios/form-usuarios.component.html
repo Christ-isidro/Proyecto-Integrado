@@ -1,0 +1,48 @@
+<div class="container container-fluid">
+    <h4>Nuevo Usuario</h4>
+    <form action="form-horizontal" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+            <label>Nombre: </label> <!---->
+            <input type="text" class="form-control" required formControlName="nombre">
+
+            @if (form.controls["nombre"].invalid && (form.controls["nombre"].dirty || form.controls["nombre"].touched)) {
+            @if (form.controls["nombre"].errors?.["required"]) {
+            <div class="alert alert-danger">El nombre es obligatorio</div>
+            }
+            }
+        </div>
+        <div class="mb-3">
+            <label>Correo electrónico: </label>
+            <input type="email" class="form-control" required formControlName="email">
+            @if (form.controls["email"].invalid && (form.controls["email"].dirty || form.controls["email"].touched))
+            {
+            @if (form.controls["email"].errors?.["required"]) {
+            <div class="alert alert-danger">El email es obligatorio</div>
+            }
+            }
+
+        </div>
+        <div class="mb-3">
+            <label>Contraseña: </label>
+            <input type="password" class="form-control" required formControlName="password">
+            @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
+            form.controls["password"].touched))
+            {
+            @if (form.controls["password"].errors?.["required"]) {
+            <div class="alert alert-danger">los password son obligatorios</div>
+            }
+            }
+        </div>
+        <div class="mb-3">
+            <label>Rol: </label>
+            <select name="rol" id="rol" required formControlName="rol">
+                <option value="-1">Seleccione un rol</option>
+                <option value="1">Participante</option>
+                <option value="2">Administrador</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="!form.valid" style="margin-right: 10px;">
+            {{textoBoton}} </button>
+        <button class="btn btn-danger" routerLink="/"> Cancelar </button>
+    </form>
+</div>
