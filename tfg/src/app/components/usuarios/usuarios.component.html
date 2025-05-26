@@ -15,15 +15,15 @@
             @for (usuario of usuarios; track $index) {
             <tr>
                 <td>{{ usuario.id }}</td>
-                <td>{{ usuario.nombre }}</td>
+                <td><a routerLink="usuario/{{usuario.id}}">{{ usuario.nombre }}</a></td>
                 <td>{{ usuario.email }}</td>
                 <td>{{ usuario.password }}</td>
                 <td>{{ usuario.rol }}</td>
-                <td><button (click)="editarUsuario(usuario)">Editar</button><button
-                        (click)="eliminarUsuario(usuario.id, usuario.nombre)">Eliminar</button></td>
+                <td><button class="btn btn-warning" (click)="editarUsuario(usuario)">Editar</button>
+                    <span> | </span><button class="btn btn-danger" (click)="eliminarUsuario(usuario.id, usuario.nombre)">Eliminar</button></td>
             </tr>
             }
         </tbody>
     </table>
-    <button type="button" (click)="nuevoUsuario()">Nuevo Usuario</button>
+    <button class="btn btn-primary" type="button" (click)="nuevoUsuario()">Nuevo Usuario</button>
 </div>

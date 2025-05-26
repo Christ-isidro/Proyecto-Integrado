@@ -31,7 +31,8 @@ class Modelo
     public function ObtenerIdUsuario($id)
     {
         try {
-            $consulta = "SELECT * FROM usuarios WHERE id = ?";
+            $consulta = "Select u.id, nombre , email , password, rol, i.id_imagen
+					From usuarios u LEFT JOIN imagenes i ON(u.id = i.id_usuario) Where u.id = ?";
             $stmt = $this->pdo->prepare($consulta);
             $stmt->execute(array($id));
             return ($stmt->fetch(PDO::FETCH_OBJ));

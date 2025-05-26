@@ -1,0 +1,28 @@
+<div class="container">
+    <h1>Detalles de {{usuario.nombre}}</h1>
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>Nombre: </th>
+                <td>{{usuario.nombre}}</td>
+            </tr>
+            <tr>
+                <th>Email: </th>
+                <td>{{usuario.email}}</td>
+            </tr>
+            <tr>
+                <th>Contraseña: </th>
+                <td>{{usuario.password}}</td>
+            </tr>
+            <tr>
+                <th>Rol: </th>
+                <td>{{usuario.rol}}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Imágenes subidas: </h2>
+    <!--Poner aqui la tabla de las imagenes-->
+
+    <button class="btn btn-black" (click)="volver()">Volver</button>
+</div>
