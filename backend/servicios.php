@@ -10,6 +10,12 @@ header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Re
 
 header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
 
+require 'vendor/autoload.php';
+
+use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
+
+
 require_once 'modelos.php';
 $modelo = new Modelo();
 
@@ -36,6 +42,10 @@ if ($objeto != null) {
             $modelo->InsertarUsuario($objeto->usuario);
             break;
 
+        case 'RegistrarUsuario':
+            $modelo->RegistrarUsuario($objeto->usuario);
+            break;
+
         //Modificar (Actualizar)
         case 'EditarUsuario':
             $modelo->EditarUsuario($objeto->usuario);
@@ -48,6 +58,10 @@ if ($objeto != null) {
                 print json_encode($modelo->ListarUsuarios());
             else
                 print '{"result":"OK"}';
+            break;
+
+        case 'IniciarSesion':
+            $modelo->IniciarSesion( $objeto);
             break;
     }
 }

@@ -1,8 +1,13 @@
 <?php
+require_once 'vendor/autoload.php';
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class Modelo
 {
     private $pdo;
+    private $jwt_key = 'clave_secreta_segura'; // Cámbiala en producción
 
     public function __CONSTRUCT()
     {
@@ -59,6 +64,29 @@ class Modelo
         }
     }
 
+    public function RegistrarUsuario($datos)
+    {
+        try {
+            $hashed_password = password_hash($datos->password, PASSWORD_BCRYPT);
+
+            $consulta = "INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, ?)";
+            $this->pdo->prepare($consulta)->execute([
+                $datos->nombre,
+                $datos->email,
+                $hashed_password,
+                'participante' // siempre asigna este rol
+            ]);
+
+            //  Respuesta de éxito
+            echo json_encode(["success" => true, "message" => "Usuario registrado correctamente."]);
+        } catch (Exception $exception) {
+            //  Manejo de errores con respuesta JSON
+            http_response_code(500);
+            echo json_encode(["success" => false, "error" => $exception->getMessage()]);
+        }
+    }
+
+
     //Modificar (Actualizar)
     public function EditarUsuario($datos)
     {
@@ -86,6 +114,43 @@ class Modelo
             $stm->execute(array($id));
         } catch (Exception $e) {
             die($e->getMessage());
+        }
+    }
+
+    //Inicio de sesion
+    public function IniciarSesion($datos)
+    {
+        try {
+            $sql = "SELECT * FROM usuarios WHERE email = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$datos->email]);
+            $usuario = $stmt->fetch(PDO::FETCH_OBJ);
+
+            if ($usuario && password_verify($datos->password, $usuario->password)) {
+                $payload = [
+                    'iat' => time(),
+                    'exp' => time() + (60 * 60 * 24),
+                    'data' => [
+                        'id' => $usuario->id,
+                        'email' => $usuario->email,
+                        'nombre' => $usuario->nombre,
+                        'rol' => $usuario->rol
+                    ]
+                ];
+
+                $jwt = JWT::encode($payload, $this->jwt_key, 'HS256');
+
+                echo json_encode([
+                    'success' => true,
+                    'token' => $jwt,
+                    'usuario' => $payload['data']
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Credenciales inválidas']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 }

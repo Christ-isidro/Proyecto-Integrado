@@ -26,9 +26,17 @@ export class UsuarioService {
     return this.http.post<Usuario>(this.url, p);
   }
 
-  InserterUsuario(usuario: Usuario) {
+  InsertarUsuario(usuario: Usuario) {
     let p = JSON.parse(JSON.stringify(usuario));
     p.accion = 'InsertarUsuario';
+    p.usuario = usuario;
+    console.log(p);
+    return this.http.post<Usuario[]>(this.url, JSON.stringify(p));
+  }
+
+  RegistrarUsuario(usuario: Usuario) {
+    let p = JSON.parse(JSON.stringify(usuario));
+    p.accion = 'RegistrarUsuario';
     p.usuario = usuario;
     console.log(p);
     return this.http.post<Usuario[]>(this.url, JSON.stringify(p));
@@ -50,4 +58,13 @@ export class UsuarioService {
     });
     return this.http.post<Usuario[]>(this.url, p);
   }
+
+  login(email: string, password: string) {
+    return this.http.post<any>(this.url, {
+      accion: 'IniciarSesion',
+      email,
+      password
+    });
+  }
+
 }

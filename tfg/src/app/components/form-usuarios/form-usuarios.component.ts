@@ -34,7 +34,7 @@ export class FormUsuariosComponent {
     //Recibe cuando el formulario es submiteado. Llama a la función insertar del servicio PAjax y le paso this.persona
     console.log('this.form.value ', this.form.value);
     if (this.form.value.id == -1) {
-      this.peticion.InserterUsuario(this.form.value).subscribe(
+      this.peticion.InsertarUsuario(this.form.value).subscribe(
         datos => {
 
           console.log('np: ', datos);
