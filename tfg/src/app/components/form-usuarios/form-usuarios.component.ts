@@ -23,7 +23,7 @@ export class FormUsuariosComponent {
       id: this.formBuilder.control("-1"),
       nombre: this.formBuilder.control('', [Validators.required]),
       email: this.formBuilder.control('', [Validators.required]),
-      password: this.formBuilder.control('', [Validators.required, Validators.minLength(8)]),
+      password: this.formBuilder.control('', [Validators.required, Validators.minLength(6)]),
       rol: this.formBuilder.control('', [Validators.required]),
     });
     this.textoBoton = 'Agregar';

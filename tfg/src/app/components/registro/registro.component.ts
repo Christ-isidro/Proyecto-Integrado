@@ -18,7 +18,7 @@ export class RegistroComponent {
     this.form = this.formBuilder.group({
       nombre: this.formBuilder.control('', [Validators.required]),
       email: this.formBuilder.control('', [Validators.required]),
-      password: this.formBuilder.control('', [Validators.required, Validators.minLength(8)]),
+      password: this.formBuilder.control('', [Validators.required, Validators.minLength(6)]),
     })
   }
 

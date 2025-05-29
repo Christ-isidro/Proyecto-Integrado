@@ -25,6 +25,13 @@ $datos = file_get_contents('php://input');  //  $datos es un string, y no un obj
 //  Lo convertimos a un objeto php:
 $objeto = json_decode($datos);
 
+// Subida de imágenes (fuera del switch, porque usa $_FILES)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'SubirImagen') {
+    $modelo->SubirImagen();
+    exit;
+}
+
+
 if ($objeto != null) {
     switch ($objeto->accion) {
 
@@ -35,6 +42,10 @@ if ($objeto != null) {
 
         case 'ObtenerIdUsuario':
             print json_encode($modelo->ObtenerIdUsuario($objeto->id));
+            break;
+
+        case 'ObtenerImagenesPorUsuario':
+            print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
             break;
 
         //Insertar
@@ -61,7 +72,7 @@ if ($objeto != null) {
             break;
 
         case 'IniciarSesion':
-            $modelo->IniciarSesion( $objeto);
+            $modelo->IniciarSesion($objeto);
             break;
     }
 }

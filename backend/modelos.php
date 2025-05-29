@@ -46,6 +46,20 @@ class Modelo
         }
     }
 
+    public function ObtenerImagenesPorUsuario($id_usuario)
+    {
+        try {
+            $consulta = "SELECT * FROM imagenes WHERE id_usuario = ?";
+            $stmt = $this->pdo->prepare($consulta);
+            $stmt->execute([$id_usuario]);
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+
     //Insertar
     public function InsertarUsuario($datos)
     {
@@ -147,6 +161,43 @@ class Modelo
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Credenciales inválidas']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    public function SubirImagen()
+    {
+        try {
+            // Verifica si hay archivo y datos
+            if (!isset($_FILES['imagen']) || !isset($_POST['id_usuario'])) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+                return;
+            }
+
+            $id_usuario = $_POST['id_usuario'];
+            $imagen = $_FILES['imagen'];
+            $nombreArchivo = basename($imagen['name']);
+            $directorio = 'images/';
+
+            // Crear nombre único para evitar conflictos
+            $nombreUnico = uniqid() . "_" . $nombreArchivo;
+            $rutaFinal = $directorio . $nombreUnico;
+
+            // Mover imagen al servidor
+            if (move_uploaded_file($imagen['tmp_name'], $rutaFinal)) {
+                // Guardar ruta en la base de datos con estado "pendiente"
+                $consulta = "INSERT INTO imagenes (id_usuario, ruta, estado) VALUES (?, ?, 'pendiente')";
+                $stmt = $this->pdo->prepare($consulta);
+                $stmt->execute([$id_usuario, $rutaFinal]);
+
+                echo json_encode(['success' => true, 'ruta' => $rutaFinal]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'No se pudo guardar la imagen']);
             }
         } catch (Exception $e) {
             http_response_code(500);
