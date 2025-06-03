@@ -62,13 +62,9 @@ export class UsuarioService {
   login(email: string, password: string) {
     return this.http.post<any>(this.url, {
       accion: 'IniciarSesion',
-      email,
-      password
+      email: email,
+      password: password
     });
-  }
-
-  SubirImagen(){
-    
   }
 
 }

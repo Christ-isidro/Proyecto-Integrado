@@ -1,5 +1,7 @@
 <?php
 require_once 'vendor/autoload.php';
+require_once 'config.php';
+
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -168,40 +170,42 @@ class Modelo
         }
     }
 
-    public function SubirImagen()
+    public function SubirImagen($file, $id_usuario)
     {
+        global $uploadDir;
+
+        // Si no existe la carpeta, se crea
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('photo_', true) . '.' . $extension;
+        $relativePath = 'images/' . $filename; // Ruta relativa
+        $fullPath = $uploadDir . $filename;    // Ruta completa
+
+        // Mover la imagen
+        if (!move_uploaded_file($file['tmp_name'], $fullPath)) {
+            http_response_code(500);
+            echo json_encode(['error' => 'No se pudo guardar el archivo']);
+            return false;
+        }
+
+        // Guardar en la base de datos
         try {
-            // Verifica si hay archivo y datos
-            if (!isset($_FILES['imagen']) || !isset($_POST['id_usuario'])) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
-                return;
-            }
+            $consulta = "INSERT INTO imagenes (ruta, id_usuario, estado) VALUES (?, ?, ?)";
+            $this->pdo->prepare($consulta)->execute([$relativePath, $id_usuario, 'pendiente']);
 
-            $id_usuario = $_POST['id_usuario'];
-            $imagen = $_FILES['imagen'];
-            $nombreArchivo = basename($imagen['name']);
-            $directorio = 'images/';
-
-            // Crear nombre único para evitar conflictos
-            $nombreUnico = uniqid() . "_" . $nombreArchivo;
-            $rutaFinal = $directorio . $nombreUnico;
-
-            // Mover imagen al servidor
-            if (move_uploaded_file($imagen['tmp_name'], $rutaFinal)) {
-                // Guardar ruta en la base de datos con estado "pendiente"
-                $consulta = "INSERT INTO imagenes (id_usuario, ruta, estado) VALUES (?, ?, 'pendiente')";
-                $stmt = $this->pdo->prepare($consulta);
-                $stmt->execute([$id_usuario, $rutaFinal]);
-
-                echo json_encode(['success' => true, 'ruta' => $rutaFinal]);
-            } else {
-                http_response_code(500);
-                echo json_encode(['success' => false, 'error' => 'No se pudo guardar la imagen']);
-            }
+            echo json_encode([
+                'success' => true,
+                'imagen' => [
+                    'ruta' => $relativePath,
+                    'estado' => 'pendiente'
+                ]
+            ]);
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            echo json_encode(['error' => $e->getMessage()]);
         }
     }
 }

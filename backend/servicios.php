@@ -11,6 +11,8 @@ header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Re
 header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
 
 require 'vendor/autoload.php';
+require_once 'config.php';
+
 
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
@@ -19,18 +21,21 @@ use \Firebase\JWT\Key;
 require_once 'modelos.php';
 $modelo = new Modelo();
 
+if (isset($_GET['accion']) && $_GET['accion'] === 'SubirImagen') {
+    if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
+        $modelo->SubirImagen($_FILES['imagen'], $_POST['id_usuario']);
+    } else {
+        http_response_code(400);
+        echo json_encode(['error' => 'Datos incompletos.']);
+    }
+    exit; // cortamos aquí porque no es JSON
+}
+
 
 //  Con esta línea recogemos los datos (en formato JSON), enviados por el cliente:
 $datos = file_get_contents('php://input');  //  $datos es un string, y no un objeto php
 //  Lo convertimos a un objeto php:
 $objeto = json_decode($datos);
-
-// Subida de imágenes (fuera del switch, porque usa $_FILES)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['accion']) && $_GET['accion'] === 'SubirImagen') {
-    $modelo->SubirImagen();
-    exit;
-}
-
 
 if ($objeto != null) {
     switch ($objeto->accion) {

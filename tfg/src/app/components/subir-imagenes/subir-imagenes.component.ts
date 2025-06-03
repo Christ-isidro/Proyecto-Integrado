@@ -1,54 +1,62 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, inject, OnInit } from '@angular/core';
+import { ImagenService } from '../../services/imagen.service';
+import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { UsuarioService } from '../../services/usuario.service';
 
 @Component({
   selector: 'app-subir-imagenes',
-  imports: [],
+  imports: [ReactiveFormsModule],
   templateUrl: './subir-imagenes.component.html',
   styleUrl: './subir-imagenes.component.css'
 })
 export class SubirImagenesComponent implements OnInit {
 
-  archivoSeleccionado: File | null = null;
-  idUsuario: number = 0;
+  form: FormGroup;
+  file: File | null = null;
+  id_usuario: number = 0;
 
-  constructor(private http: HttpClient) { }
 
-  ngOnInit(): void {
+  constructor(private usuarioService: UsuarioService, private imagenService: ImagenService, private router: Router, private formBuilder: FormBuilder) {
+    this.form = this.formBuilder.group({
+      titulo: this.formBuilder.control('', [Validators.required]),
+      descripcion: [''],
+      imagen: this.formBuilder.control(null, [Validators.required]),
+    })
+  }
+
+  ngOnInit() {
     const usuario = localStorage.getItem('usuario');
     if (usuario) {
       const datos = JSON.parse(usuario);
-      this.idUsuario = datos.id;
+      this.id_usuario = datos.id;
     }
   }
 
-  onFileSelected(event: any) {
-    this.archivoSeleccionado = event.target.files[0];
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.file = input.files[0];
+      this.form.get('imagen')?.setValue(this.file);
+    }
   }
 
   onSubmit() {
-    if (!this.archivoSeleccionado || !this.idUsuario) {
-      alert('Falta seleccionar imagen o no hay usuario autenticado.');
-      return;
-    }
+    if (this.form.invalid || !this.file) return;
 
-    const formData = new FormData();
-    formData.append('imagen', this.archivoSeleccionado);
-    formData.append('id_usuario', this.idUsuario.toString());
+    const { titulo, descripcion } = this.form.value;
 
-    this.http.post<any>('http://localhost/Proyecto%20Integrado/backend/servicios.php?accion=SubirImagen', formData)
-      .subscribe({
-        next: res => {
-          if (res.success) {
-            alert('Imagen subida con éxito.');
-          } else {
-            alert('Error del servidor: ' + res.error);
-          }
-        },
-        error: err => {
-          console.error(err);
-          alert('Error en la subida.');
+    this.imagenService.SubirImagen(this.file, this.id_usuario, titulo, descripcion).subscribe({
+      next: (res) => {
+        if (res) {
+          this.form.reset();
+          this.file = null;
         }
-      });
+      },
+      error: (err) => {
+        console.error('Error al subir imagen:', err);
+      },
+    });
   }
+
 }
