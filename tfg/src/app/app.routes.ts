@@ -47,7 +47,7 @@ export const routes: Routes = [
         component: AdministradorComponent
     },
     {
-        path: "participante",
+        path: "perfil",
         component: ParticipanteComponent
     }
 ];

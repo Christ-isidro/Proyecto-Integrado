@@ -1,8 +1,34 @@
 <div class="container mt-4">
     <h3>Bienvenido, {{ usuario.nombre }}</h3>
     <p><strong>Email:</strong> {{ usuario.email }}</p>
-    <p><strong>Rol:</strong> {{ usuario.rol }}</p>
-    <button class="btn btn-primary" (click)="subirImagen(usuario.id)">Subir imagen</button>
-    <button class="btn btn-danger mt-3" (click)="cerrarSesion()">Cerrar sesión</button>
+    <button class="btn btn-primary m-3" (click)="subirImagen(usuario.id)">Subir imagen</button>
+    <button class="btn btn-danger m-3" (click)="cerrarSesion()">Cerrar sesión</button>
 </div>
 
+<div class="container mt-4">
+    <h4>Mis imagenes</h4>
+    <div class="row">
+        @for (imagen of imagenes; track $index) {
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" class="card-img-top"
+                    alt="Imagen de {{ usuario.nombre }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ imagen.titulo }}</h5>
+                    <p class="card-text">{{ imagen.descripcion }}</p>
+
+                    <span [class.bg-warning]="imagen.estado === 'pendiente'"
+                        [class.text-dark]="imagen.estado === 'pendiente'"
+                        [class.bg-success]="imagen.estado === 'aceptado'"
+                        [class.bg-danger]="imagen.estado === 'rechazada'"
+                        style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
+                        Estado: {{ imagen.estado }}
+                    </span>
+                    <br>
+                    <button class="btn btn-danger mt-4" (click)="eliminarImagen(imagen.id_imagen)">Eliminar</button>
+                </div>
+            </div>
+        </div>
+        }
+
+    </div>

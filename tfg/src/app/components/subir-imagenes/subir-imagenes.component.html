@@ -5,24 +5,34 @@
         <div class="mb-3">
             <label for="titulo" class="form-label">Título:</label>
             <input type="text" id="titulo" class="form-control" formControlName="titulo" />
-            <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="text-danger">
-                El título es obligatorio.
-            </div>
+            @if (form.controls["titulo"].invalid && (form.controls["titulo"].dirty ||
+            form.controls["titulo"].touched))
+            {
+            <div class="alert alert-danger">Título obligatorio</div>
+            }
         </div>
 
         <div class="mb-3">
             <label for="descripcion" class="form-label">Descripción:</label>
             <textarea id="descripcion" class="form-control" formControlName="descripcion"></textarea>
+            @if (form.controls["descripcion"].invalid && (form.controls["descripcion"].dirty ||
+            form.controls["descripcion"].touched))
+            {
+            <div class="alert alert-danger">Descripción obligatoria</div>
+            }
         </div>
 
         <div class="mb-3">
             <label for="imagen" class="form-label">Selecciona una imagen:</label>
             <input type="file" id="imagen" class="form-control" (change)="onFileSelected($event)" />
-            <div *ngIf="form.get('imagen')?.invalid && form.get('imagen')?.touched" class="text-danger">
-                La imagen es obligatoria.
-            </div>
+            @if (form.controls["imagen"].invalid && (form.controls["imagen"].dirty ||
+            form.controls["imagen"].touched))
+            {
+            <div class="alert alert-danger">Imagen obligatoria</div>
+            }
         </div>
 
         <button class="btn btn-success" type="submit" [disabled]="form.invalid">Subir Imagen</button>
     </form>
+    <button (click)="cancelar()">Cancelar</button>
 </div>

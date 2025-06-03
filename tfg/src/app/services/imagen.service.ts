@@ -12,14 +12,19 @@ export class ImagenService {
   private url: string = environment.url
   constructor(private http: HttpClient) { }
 
-  //ListarImagenes()
+  ListarImagenes() {
+    let p = JSON.stringify({
+      accion: "ListarImagenes"
+    });
+    return this.http.post<Imagen[]>(this.url, p);
+  }
 
   ObtenerImagenesPorUsuario(id_usuario: number) {
     let p = JSON.stringify({
       accion: "ObtenerImagenesPorUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<Imagen>(this.url, p);
+    return this.http.post<Imagen[]>(this.url, p);
   }
 
   SubirImagen(file: File, id_usuario: number, titulo: string, descripcion: string) {
@@ -28,12 +33,13 @@ export class ImagenService {
     formData.append('titulo', titulo);
     formData.append('descripcion', descripcion);
     formData.append('id_usuario', id_usuario.toString());
+    formData.append('accion', 'SubirImagen');
     return this.http.post(this.url, formData)
   }
 
   eliminarImagen(id_imagen: number) {
     let p = JSON.stringify({
-      accion: "EliminarImagen",
+      accion: "BorrarImagen",
       id_imagen: id_imagen
     });
     return this.http.post<Imagen>(this.url, p);

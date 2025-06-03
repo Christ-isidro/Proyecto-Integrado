@@ -35,6 +35,18 @@ class Modelo
         }
     }
 
+    public function ListarImagenes()
+    {
+        try {
+            $consulta = "SELECT * FROM imagenes";
+            $stmt = $this->pdo->prepare($consulta);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
     public function ObtenerIdUsuario($id)
     {
         try {
@@ -133,6 +145,29 @@ class Modelo
         }
     }
 
+    public function BorrarImagen($id_imagen)
+    {
+        // 1. Obtener la ruta de la imagen
+        $stmt = $this->pdo->prepare("SELECT ruta FROM imagenes WHERE id_imagen = ?");
+        $stmt->execute([$id_imagen]);
+        $imagen = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($imagen && isset($imagen['ruta'])) {
+            $ruta = __DIR__ . '/' . $imagen['ruta'];
+            // 2. Eliminar el archivo físico si existe
+            if (file_exists($ruta)) {
+                unlink($ruta);
+            }
+        }
+
+        // 3. Eliminar el registro de la base de datos
+        $stmt = $this->pdo->prepare("DELETE FROM imagenes WHERE id_imagen = ?");
+        $stmt->execute([$id_imagen]);
+
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
     //Inicio de sesion
     public function IniciarSesion($datos)
     {
@@ -169,43 +204,43 @@ class Modelo
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-
-    public function SubirImagen($file, $id_usuario)
+    public function SubirImagen($file, $id_usuario, $titulo, $descripcion)
     {
         global $uploadDir;
 
-        // Si no existe la carpeta, se crea
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
 
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = uniqid('photo_', true) . '.' . $extension;
-        $relativePath = 'images/' . $filename; // Ruta relativa
-        $fullPath = $uploadDir . $filename;    // Ruta completa
+        $relativePath = 'images/' . $filename;
+        $fullPath = $uploadDir . $filename;
 
-        // Mover la imagen
         if (!move_uploaded_file($file['tmp_name'], $fullPath)) {
             http_response_code(500);
-            echo json_encode(['error' => 'No se pudo guardar el archivo']);
-            return false;
+            echo json_encode(['success' => false, 'message' => 'Error al mover el archivo.']);
+            exit;
         }
 
-        // Guardar en la base de datos
         try {
-            $consulta = "INSERT INTO imagenes (ruta, id_usuario, estado) VALUES (?, ?, ?)";
-            $this->pdo->prepare($consulta)->execute([$relativePath, $id_usuario, 'pendiente']);
-
+            $stmt = $this->pdo->prepare("INSERT INTO imagenes (ruta, id_usuario, titulo, descripcion, estado) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$relativePath, $id_usuario, $titulo, $descripcion, 'pendiente']);
+            if ($stmt->rowCount() === 0) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Error al insertar en la base de datos.']);
+                exit;
+            }
             echo json_encode([
                 'success' => true,
-                'imagen' => [
-                    'ruta' => $relativePath,
-                    'estado' => 'pendiente'
-                ]
+                'message' => 'Imagen subida correctamente.',
+                'ruta' => $relativePath
             ]);
+            exit;
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Error en la base de datos.']);
+            exit;
         }
     }
 }

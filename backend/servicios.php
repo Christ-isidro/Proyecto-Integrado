@@ -21,16 +21,27 @@ use \Firebase\JWT\Key;
 require_once 'modelos.php';
 $modelo = new Modelo();
 
-if (isset($_GET['accion']) && $_GET['accion'] === 'SubirImagen') {
-    if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
-        $modelo->SubirImagen($_FILES['imagen'], $_POST['id_usuario']);
+$accion = isset($_POST['accion']) ? $_POST['accion'] : null;
+if ($accion === 'SubirImagen') {
+    if (
+        isset($_FILES['imagen']) &&
+        isset($_POST['id_usuario']) &&
+        isset($_POST['titulo']) &&
+        isset($_POST['descripcion'])
+    ) {
+        // Pasa todos los datos al modelo
+        $modelo->SubirImagen(
+            $_FILES['imagen'],
+            $_POST['id_usuario'],
+            $_POST['titulo'],
+            $_POST['descripcion']
+        );
     } else {
         http_response_code(400);
         echo json_encode(['error' => 'Datos incompletos.']);
     }
-    exit; // cortamos aquí porque no es JSON
+    exit;
 }
-
 
 //  Con esta línea recogemos los datos (en formato JSON), enviados por el cliente:
 $datos = file_get_contents('php://input');  //  $datos es un string, y no un objeto php
@@ -45,6 +56,14 @@ if ($objeto != null) {
             print json_encode($modelo->ListarUsuarios());
             break;
 
+        case 'ListarImagenes':
+            print json_encode($modelo->ListarImagenes());
+            break;
+
+        case 'ListarImagenesAdmitidas':
+            print json_encode($modelo->ListarImagenesAdmitidas());
+            break;
+
         case 'ObtenerIdUsuario':
             print json_encode($modelo->ObtenerIdUsuario($objeto->id));
             break;
@@ -52,6 +71,8 @@ if ($objeto != null) {
         case 'ObtenerImagenesPorUsuario':
             print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
             break;
+
+
 
         //Insertar
         case 'InsertarUsuario':
@@ -76,6 +97,11 @@ if ($objeto != null) {
                 print '{"result":"OK"}';
             break;
 
+        case 'BorrarImagen':
+            $modelo->BorrarImagen($objeto->id_imagen);
+            break;
+
+        // Iniciar sesión
         case 'IniciarSesion':
             $modelo->IniciarSesion($objeto);
             break;
