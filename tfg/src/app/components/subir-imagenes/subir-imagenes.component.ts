@@ -16,11 +16,12 @@ export class SubirImagenesComponent implements OnInit {
   file: File | null = null;
   id_usuario: number = 0;
 
+  previewUrl: string | ArrayBuffer | null = null;
+
+
 
   constructor(private usuarioService: UsuarioService, private imagenService: ImagenService, private router: Router, private formBuilder: FormBuilder) {
     this.form = this.formBuilder.group({
-      titulo: this.formBuilder.control('', [Validators.required]),
-      descripcion: this.formBuilder.control('', [Validators.required]),
       imagen: this.formBuilder.control(null, [Validators.required]),
     })
   }
@@ -38,16 +39,22 @@ export class SubirImagenesComponent implements OnInit {
     if (input.files && input.files.length > 0) {
       this.file = input.files[0];
       this.form.get('imagen')?.setValue(this.file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl = reader.result;
+      };
+      reader.readAsDataURL(this.file);
     }
   }
 
   onSubmit() {
     if (this.form.invalid || !this.file) return;
 
-    this.imagenService.SubirImagen(this.file, this.id_usuario, this.form.value.titulo, this.form.value.descripcion).subscribe({
+    this.imagenService.SubirImagen(this.file, this.id_usuario).subscribe({
       next: res => {
         console.log('Imagen subida correctamente:', res);
-        this.router.navigate(['/participante']);
+        this.router.navigate(['/perfil']);
       },
       error: (err) => {
         console.error('Error al subir imagen:', err);
@@ -56,7 +63,7 @@ export class SubirImagenesComponent implements OnInit {
   }
 
   cancelar() {
-    this.router.navigate(['/participante']);
+    this.router.navigate(['/perfil']);
   }
 
 }

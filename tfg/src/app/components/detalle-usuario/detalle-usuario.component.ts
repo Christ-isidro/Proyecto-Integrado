@@ -28,7 +28,7 @@ export class DetalleUsuarioComponent {
   }
 
   volver() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/usuarios']);
   }
 
 }

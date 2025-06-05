@@ -19,6 +19,13 @@ export class ImagenService {
     return this.http.post<Imagen[]>(this.url, p);
   }
 
+  ListarImagenesAdmitidas() {
+    let p = JSON.stringify({
+      accion: "ListarImagenesAdmitidas"
+    });
+    return this.http.post<Imagen[]>(this.url, p);
+  }
+
   ObtenerImagenesPorUsuario(id_usuario: number) {
     let p = JSON.stringify({
       accion: "ObtenerImagenesPorUsuario",
@@ -27,11 +34,9 @@ export class ImagenService {
     return this.http.post<Imagen[]>(this.url, p);
   }
 
-  SubirImagen(file: File, id_usuario: number, titulo: string, descripcion: string) {
+  SubirImagen(file: File, id_usuario: number) {
     const formData = new FormData();
     formData.append('imagen', file);
-    formData.append('titulo', titulo);
-    formData.append('descripcion', descripcion);
     formData.append('id_usuario', id_usuario.toString());
     formData.append('accion', 'SubirImagen');
     return this.http.post(this.url, formData)
@@ -45,9 +50,9 @@ export class ImagenService {
     return this.http.post<Imagen>(this.url, p);
   }
 
-  CambiarEstadoImagen(id_imagen: number, estado: string) {
+  ValidarImagen(id_imagen: number, estado: string) {
     let p = JSON.stringify({
-      accion: "CambiarEstadoImagen",
+      accion: "ValidarImagen",
       id_imagen: id_imagen,
       estado: estado,
     });

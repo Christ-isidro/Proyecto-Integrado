@@ -21,20 +21,17 @@ use \Firebase\JWT\Key;
 require_once 'modelos.php';
 $modelo = new Modelo();
 
-$accion = isset($_POST['accion']) ? $_POST['accion'] : null;
-if ($accion === 'SubirImagen') {
-    if (
-        isset($_FILES['imagen']) &&
-        isset($_POST['id_usuario']) &&
-        isset($_POST['titulo']) &&
-        isset($_POST['descripcion'])
-    ) {
-        // Pasa todos los datos al modelo
+
+//  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
+//  se procesa la subida de una imagen.
+if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
+    //  Comprobamos que se ha enviado un archivo y un id de usuario.
+    if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
+        //  Llamamos al método SubirImagen del modelo, pasándole el archivo y el id del usuario.
+        //  El método SubirImagen se encargará de procesar la imagen y guardarla en el servidor.
         $modelo->SubirImagen(
             $_FILES['imagen'],
-            $_POST['id_usuario'],
-            $_POST['titulo'],
-            $_POST['descripcion']
+            $_POST['id_usuario']
         );
     } else {
         http_response_code(400);
@@ -73,7 +70,6 @@ if ($objeto != null) {
             break;
 
 
-
         //Insertar
         case 'InsertarUsuario':
             $modelo->InsertarUsuario($objeto->usuario);
@@ -86,6 +82,10 @@ if ($objeto != null) {
         //Modificar (Actualizar)
         case 'EditarUsuario':
             $modelo->EditarUsuario($objeto->usuario);
+            break;
+
+        case 'ValidarImagen':
+            $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
             break;
 
         //Borrar

@@ -1,15 +1,45 @@
-<div class="container">
-    <h2>Iniciar Sesión</h2>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" class="form-control" formControlName="email">
-        </div>
-        <div class="mb-3">
-            <label>Contraseña</label>
-            <input type="password" class="form-control" formControlName="password">
-        </div>
-        <button type="submit" class="btn btn-primary">Ingresar</button>
-    </form>
-    <button class="btn btn-danger" (click)="volver()">Volver</button>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>\
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+</head>
+
+<body>
+    <div class="container d-flex flex-column align-items-center justify-content-center"
+        style="min-height: 80vh; max-width: 400px;">
+        <h2 class="mb-4 fw-bold text-center">Iniciar Sesión</h2>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-100">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" formControlName="email" required>
+                @if (form.controls["email"].invalid && (form.controls["email"].dirty || form.controls["email"].touched))
+                {
+                <div class="alert alert-danger mt-2">El email es obligatorio</div>
+                }
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" class="form-control" formControlName="password" required>
+                @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
+                form.controls["password"].touched)) {
+                <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
+                }
+            </div>
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-danger" type="button" (click)="volver()">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

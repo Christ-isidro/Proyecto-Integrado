@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Usuario } from '../../models/usuario';
 import { Imagen } from '../../models/imagen';
 import { ImagenService } from '../../services/imagen.service';
 
 @Component({
   selector: 'app-participante',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './participante.component.html',
   styleUrl: './participante.component.css'
 })
@@ -32,6 +32,10 @@ export class ParticipanteComponent {
         }
       });
     }
+  }
+
+  irAEditarPerfil() {
+    this.router.navigate(['editar-perfil', this.usuario.id]);
   }
 
   cerrarSesion(): void {

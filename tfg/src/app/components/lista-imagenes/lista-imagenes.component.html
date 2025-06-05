@@ -1,1 +1,48 @@
-<p>lista-imagenes works!</p>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de imagenes vista de administrador</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4 fw-bold">Lista de imágenes</h2>
+        <div class="row justify-content-center">
+            @for (imagen of imagenes; track $index) {
+            <div class="col-md-4 mb-4 d-flex align-items-stretch">
+                <div class="card shadow w-100">
+                    <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" class="card-img-top"
+                        style="height: 250px; object-fit: cover;">
+                    <div class="card-body text-center">
+                        <div class="mb-2">
+                            <strong>Usuario:</strong> {{ imagen.nombre_usuario }}
+                        </div>
+                        <span [class.bg-warning]="imagen.estado === 'pendiente'"
+                            [class.text-dark]="imagen.estado === 'pendiente'"
+                            [class.bg-success]="imagen.estado === 'admitido'"
+                            [class.bg-danger]="imagen.estado === 'rechazado'"
+                            style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
+                            Estado: {{ imagen.estado }}
+                        </span>
+                        <br>
+                        <button class="btn btn-primary mt-4 w-100" (click)="validar(imagen.id_imagen)">
+                            <i class="bi bi-check-circle"></i> Validar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        <div class="text-center mt-4">
+            <button class="btn btn-secondary" routerLink="/admin">
+                <i class="bi bi-arrow-left"></i> Volver
+            </button>
+        </div>
+    </div>
+</body>
+
+</html>

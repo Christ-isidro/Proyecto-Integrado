@@ -45,7 +45,7 @@ export class UsuarioService {
   EditarUsuario(usuario: Usuario) {
     let p = JSON.parse(JSON.stringify(usuario));
     p.accion = "EditarUsuario";
-    p.usuyario = usuario;
+    p.usuario = usuario;
     console.log(p);
     return this.http.post<Usuario[]>(this.url, JSON.stringify(p));
   }

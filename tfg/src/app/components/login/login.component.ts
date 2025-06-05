@@ -32,7 +32,7 @@ export class LoginComponent {
           if (rol === 'administrador') {
             this.router.navigate(['/admin']);
           } else {
-            this.router.navigate(['/perfil']);
+            this.router.navigate(['/inicio']);
           }
         } else {
           alert('Credenciales incorrectas');

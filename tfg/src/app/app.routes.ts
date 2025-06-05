@@ -8,6 +8,10 @@ import { LoginComponent } from './components/login/login.component';
 import { AdministradorComponent } from './components/administrador/administrador.component';
 import { ParticipanteComponent } from './components/participante/participante.component';
 import { SubirImagenesComponent } from './components/subir-imagenes/subir-imagenes.component';
+import { FormPerfilComponent } from './components/form-perfil/form-perfil.component';
+import { ListaImagenesComponent } from './components/lista-imagenes/lista-imagenes.component';
+import { ValidarImagenesComponent } from './components/validar-imagenes/validar-imagenes.component';
+import { InicioComponent } from './components/inicio/inicio.component';
 
 export const routes: Routes = [
     {
@@ -31,7 +35,7 @@ export const routes: Routes = [
         component: FormUsuariosComponent
     },
     {
-        path: "usuario/:id",
+        path: "usuarios/usuario/:id",
         component: DetalleUsuarioComponent
     },
     {
@@ -49,5 +53,21 @@ export const routes: Routes = [
     {
         path: "perfil",
         component: ParticipanteComponent
+    },
+    {
+        path: "editar-perfil/:id",
+        component: FormPerfilComponent
+    },
+    {
+        path: "imagenes",
+        component: ListaImagenesComponent
+    },
+    {
+        path: "validar/:id_imagen",
+        component: ValidarImagenesComponent
+    },
+    {
+        path: "inicio",
+        component: InicioComponent
     }
 ];

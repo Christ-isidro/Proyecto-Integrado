@@ -38,7 +38,19 @@ class Modelo
     public function ListarImagenes()
     {
         try {
-            $consulta = "SELECT * FROM imagenes";
+            $consulta = "SELECT imagenes.*, usuarios.nombre AS nombre_usuario FROM imagenes JOIN usuarios ON imagenes.id_usuario = usuarios.id";
+            $stmt = $this->pdo->prepare($consulta);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function ListarImagenesAdmitidas()
+    {
+        try {
+            $consulta = "SELECT imagenes.*, usuarios.nombre AS nombre_usuario FROM imagenes JOIN usuarios ON imagenes.id_usuario = usuarios.id WHERE imagenes.estado = 'admitido'";
             $stmt = $this->pdo->prepare($consulta);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_OBJ);
@@ -127,7 +139,21 @@ class Modelo
                 $datos->nombre,
                 $datos->email,
                 $hashed_password,
-                $datos->rol
+                $datos->rol,
+                $datos->id
+            ));
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
+    }
+
+    public function ValidarImagen($id_imagen, $estado)
+    {
+        try {
+            $consulta = "UPDATE imagenes SET estado = ? WHERE id_imagen = ?";
+            $this->pdo->prepare($consulta)->execute(array(
+                $estado,
+                $id_imagen
             ));
         } catch (Exception $e) {
             die($e->getMessage());
@@ -172,15 +198,18 @@ class Modelo
     public function IniciarSesion($datos)
     {
         try {
+            // 1. Busca el usuario por email en la base de datos
             $sql = "SELECT * FROM usuarios WHERE email = ?";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$datos->email]);
             $usuario = $stmt->fetch(PDO::FETCH_OBJ);
 
+            // 2. Si el usuario existe y la contraseña es correcta
             if ($usuario && password_verify($datos->password, $usuario->password)) {
+                // 3. Prepara el payload del JWT con datos del usuario y tiempos de expiración
                 $payload = [
-                    'iat' => time(),
-                    'exp' => time() + (60 * 60 * 24),
+                    'iat' => time(), // Fecha de emisión
+                    'exp' => time() + (60 * 60 * 24), // Expira en 24 horas
                     'data' => [
                         'id' => $usuario->id,
                         'email' => $usuario->email,
@@ -189,22 +218,26 @@ class Modelo
                     ]
                 ];
 
+                // 4. Genera el token JWT usando la clave secreta
                 $jwt = JWT::encode($payload, $this->jwt_key, 'HS256');
 
+                // 5. Devuelve el token y los datos del usuario en formato JSON
                 echo json_encode([
                     'success' => true,
                     'token' => $jwt,
                     'usuario' => $payload['data']
                 ]);
             } else {
+                // 6. Si no existe el usuario o la contraseña es incorrecta, devuelve error
                 echo json_encode(['success' => false, 'message' => 'Credenciales inválidas']);
             }
         } catch (Exception $e) {
+            // 7. Si ocurre algún error, devuelve error 500 y el mensaje
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-    public function SubirImagen($file, $id_usuario, $titulo, $descripcion)
+    public function SubirImagen($file, $id_usuario)
     {
         global $uploadDir;
 
@@ -224,8 +257,8 @@ class Modelo
         }
 
         try {
-            $stmt = $this->pdo->prepare("INSERT INTO imagenes (ruta, id_usuario, titulo, descripcion, estado) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$relativePath, $id_usuario, $titulo, $descripcion, 'pendiente']);
+            $stmt = $this->pdo->prepare("INSERT INTO imagenes (ruta, id_usuario, estado) VALUES (?, ?, ?)");
+            $stmt->execute([$relativePath, $id_usuario, 'pendiente']);
             if ($stmt->rowCount() === 0) {
                 http_response_code(500);
                 echo json_encode(['success' => false, 'message' => 'Error al insertar en la base de datos.']);

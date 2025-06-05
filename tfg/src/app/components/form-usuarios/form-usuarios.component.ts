@@ -38,13 +38,13 @@ export class FormUsuariosComponent {
         datos => {
 
           console.log('np: ', datos);
-          this.router.navigate(['/']);
+          this.router.navigate(['/usuarios']);
         });
     } else {
       this.peticion.EditarUsuario(this.form.value).subscribe(
         datos => {
           console.log('Datos: ', datos);
-          this.router.navigate(['/']);
+          this.router.navigate(['/usuarios']);
         });
     }
   }
