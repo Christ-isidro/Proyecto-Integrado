@@ -59,7 +59,7 @@ export class SubirImagenesComponent implements OnInit {
     this.uploadProgress = 0;
     this.uploadError = null;
 
-    this.imagenService.SubirImagen(this.file, this.id_usuario, this.form.value.titulo)
+    this.imagenService.uploadImage(this.file, this.id_usuario, this.form.value.titulo)
       .subscribe({
         next: (event: any) => {
           if (event.type === HttpEventType.UploadProgress) {

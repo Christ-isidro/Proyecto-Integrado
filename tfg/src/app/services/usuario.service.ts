@@ -9,7 +9,7 @@ import { getActiveConsumer } from '@angular/core/primitives/signals';
   providedIn: 'root'
 })
 export class UsuarioService {
-  private url: string = environment.url;
+  private url: string = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 

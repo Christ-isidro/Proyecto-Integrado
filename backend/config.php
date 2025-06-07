@@ -1,2 +1,2 @@
 <?php
-$uploadDir = __DIR__ . '/images/'; // Carpeta donde se subirán las imágenes
+$uploadDir = __DIR__ . '/uploads/'; // Carpeta donde se subirán las imágenes

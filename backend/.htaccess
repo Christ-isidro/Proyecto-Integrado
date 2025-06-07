@@ -1,0 +1,35 @@
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+
+# Habilitar la reescritura de URLs
+RewriteEngine On
+
+# Si el directorio o archivo existe, úsalo directamente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Servir archivos de imagen directamente
+<FilesMatch "\.(jpg|jpeg|png|gif)$">
+    Header set Cache-Control "max-age=31536000, public"
+</FilesMatch>
+
+# Asegurarse de que PHP maneje los archivos .php
+<FilesMatch "\.php$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+# Prevenir listado de directorios
+Options -Indexes
+
+# Forzar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Permitir acceso a la carpeta uploads
+<Directory "uploads">
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory> 

@@ -8,60 +8,52 @@ import { ImagenService } from '../../services/imagen.service';
   selector: 'app-participante',
   imports: [RouterLink],
   templateUrl: './participante.component.html',
-  styleUrl: './participante.component.css'
+  styleUrls: ['./participante.component.css']
 })
-export class ParticipanteComponent {
-
+export class ParticipanteComponent implements OnInit {
   public usuario: Usuario = <Usuario>{};
   public imagenes: Imagen[] = [];
 
-  constructor(private router: Router, private imagenServicio: ImagenService) {
+  constructor(
+    private router: Router, 
+    private imagenServicio: ImagenService,
+  ) { }
 
+  ngOnInit(): void {
     const usuarioIniciado = localStorage.getItem('usuario');
     if (usuarioIniciado) {
       this.usuario = JSON.parse(usuarioIniciado);
-
-      this.imagenServicio.ObtenerImagenesPorUsuario(this.usuario.id).subscribe({
-        next: (data) => {
-          this.imagenes = data;
-          console.log("Imágenes cargadas: ", this.imagenes);
-        },
-        error: (error) => {
-          console.error("Error al cargar las imágenes: ", error);
-          alert("No se han podido cargar las imágenes");
-        }
-      });
+      this.cargarImagenes();
     }
   }
 
-  irAEditarPerfil() {
-    this.router.navigate(['editar-perfil', this.usuario.id]);
+  cargarImagenes(): void {
+    this.imagenServicio.ObtenerImagenesPorUsuario(this.usuario.id).subscribe({
+      next: (data) => {
+        this.imagenes = data;
+        console.log("Imágenes cargadas: ", this.imagenes);
+      },
+      error: (error) => {
+        console.error("Error al cargar las imágenes: ", error);
+        alert("No se han podido cargar las imágenes");
+      }
+    });
   }
 
-  cerrarSesion(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
-    this.router.navigate(['/']); // Cambia a la ruta que corresponda en tu app
+  editarPerfil(id: number): void {
+    this.router.navigate(['/editar-perfil', id]);
   }
 
-  subirImagen(id: number) {
-    this.router.navigate(['subir-imagen', id])
+  subirImagen(id: number): void {
+    this.router.navigate(['/subir-imagen', id]);
   }
 
-  eliminarImagen(id: number) {
+  eliminarImagen(id: number): void {
     if (confirm('¿Estás seguro de que quieres borrar esta imagen?')) {
       this.imagenServicio.eliminarImagen(id).subscribe({
-        next: (data) => {
-          console.log("Imagen eliminada");
-          // Actualizar la lista de imágenes después de eliminar
-          this.imagenServicio.ObtenerImagenesPorUsuario(this.usuario.id).subscribe({
-            next: (imagenes) => {
-              this.imagenes = imagenes;
-            },
-            error: (error) => {
-              console.error("Error al actualizar las imágenes: ", error);
-            }
-          });
+        next: () => {
+          this.cargarImagenes();
+          alert("Imagen eliminada correctamente");
         },
         error: (error) => {
           console.error("Error al eliminar la imagen: ", error);
@@ -70,6 +62,4 @@ export class ParticipanteComponent {
       });
     }
   }
-
-
 }

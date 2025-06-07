@@ -1,56 +1,57 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ImagenService } from '../../services/imagen.service';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Imagen } from '../../models/imagen';
 
 @Component({
   selector: 'app-lista-imagenes',
-  imports: [RouterLink],
   templateUrl: './lista-imagenes.component.html',
-  styleUrl: './lista-imagenes.component.css'
+  styleUrls: ['./lista-imagenes.component.css']
 })
-export class ListaImagenesComponent {
+export class ListaImagenesComponent implements OnInit {
+  imagenes: Imagen[] = [];
 
-  public imagenes: Imagen[] = [];
+  constructor(
+    private imagenService: ImagenService,
+    private router: Router
+  ) { }
 
-  constructor(private imagenService: ImagenService, private router: Router) {
+  ngOnInit(): void {
+    this.cargarImagenes();
+  }
+
+  cargarImagenes(): void {
     this.imagenService.ListarImagenes().subscribe({
-      next: (data) => {
-        console.log(data);
+      next: (data: Imagen[]) => {
         this.imagenes = data;
       },
-      error: (error) => {
-        console.error("Error al cargar las imágenes:", error);
+      error: (error: any) => {
+        console.error('Error al cargar imágenes:', error);
       }
     });
   }
 
-  public eliminarImagen(id: number) {
-    if (confirm('¿Estás seguro de que quieres borrar esta imagen?')) {
+  validar(id: number, estado: string): void {
+    this.imagenService.ValidarImagen(id, estado).subscribe({
+      next: () => {
+        this.cargarImagenes();
+      },
+      error: (error: any) => {
+        console.error('Error al validar imagen:', error);
+      }
+    });
+  }
+
+  eliminarImagen(id: number): void {
+    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
       this.imagenService.eliminarImagen(id).subscribe({
-        next: (data) => {
-          console.log("Imagen eliminada");
-          this.imagenService.ListarImagenes().subscribe({
-            next: (imagenesActualizadas) => {
-              this.imagenes = imagenesActualizadas;
-              alert("Imagen eliminada correctamente");
-            },
-            error: (error) => {
-              console.error("Error al actualizar la lista de imágenes: ", error);
-              alert("No se ha podido actualizar la lista de imágenes");
-            }
-          });
+        next: () => {
+          this.cargarImagenes();
         },
-        error: (error) => {
-          console.error("Error al eliminar la imagen: ", error);
-          alert("No se ha podido eliminar la imagen");
+        error: (error: any) => {
+          console.error('Error al eliminar imagen:', error);
         }
       });
     }
   }
-
-  validar(id_imagen: number) {
-    this.router.navigate(['/validar', id_imagen]);
-  }
-
 }

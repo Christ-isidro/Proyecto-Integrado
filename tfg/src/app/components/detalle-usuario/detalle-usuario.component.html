@@ -46,7 +46,7 @@
                 @for (imagen of imagenes; track $index) {
                 <div class="col-md-4 mb-4 d-flex align-items-stretch">
                     <div class="card shadow asia-card w-100">
-                        <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                        <img [src]="getImageUrl(imagen.ruta)"
                             class="card-img-top asia-img" alt="Imagen de {{ imagen.nombre_usuario }}">
                         <div class="card-body text-center">
                             <div class="mb-2">

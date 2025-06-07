@@ -1,22 +1,29 @@
-import { Component, TrackByFunction } from '@angular/core';
+import { Component } from '@angular/core';
 import { Usuario } from '../../models/usuario';
 import { UsuarioService } from '../../services/usuario.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ImagenService } from '../../services/imagen.service';
 import { Imagen } from '../../models/imagen';
 import { CommonModule } from '@angular/common';
+import { UrlService } from '../../services/url.service';
 
 @Component({
   selector: 'app-detalle-usuario',
   imports: [CommonModule],
   templateUrl: './detalle-usuario.component.html',
-  styleUrl: './detalle-usuario.component.css'
+  styleUrls: ['./detalle-usuario.component.css']
 })
 export class DetalleUsuarioComponent {
   public usuario: Usuario = <Usuario>{};
   public imagenes: Imagen[] = [];
 
-  constructor(private servicioUsuario: UsuarioService, private router: Router, private ar: ActivatedRoute, private servicioImagen: ImagenService) {
+  constructor(
+    private servicioUsuario: UsuarioService, 
+    private router: Router, 
+    private ar: ActivatedRoute, 
+    private servicioImagen: ImagenService,
+    private urlService: UrlService
+  ) {
     let id_usuario = parseInt(this.ar.snapshot.params["id"]);
 
     if (id_usuario) {
@@ -37,10 +44,12 @@ export class DetalleUsuarioComponent {
           console.log(error);
         }
       });
-
     }
   }
 
+  getImageUrl(ruta: string): string {
+    return this.urlService.getImageUrl(ruta);
+  }
 
   volver() {
     this.router.navigate(['/usuarios']);
@@ -49,5 +58,4 @@ export class DetalleUsuarioComponent {
   validar(id_imagen: number) {
     this.router.navigate(['/validar', id_imagen]);
   }
-
 }

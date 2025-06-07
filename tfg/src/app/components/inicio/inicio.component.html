@@ -33,29 +33,20 @@
             </div>
         </nav>
 
-        <!-- Contenido principal -->
-        <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+        <!-- Contenedor principal -->
+        <div class="container">
+            <!-- Galería de imágenes admitidas -->
             <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.95); max-width: 900px;">
-                <h2 class="fw-bold mb-3 asia-title text-center">
+                <h3 class="fw-bold mb-4 asia-title text-center">
                     <span class="asia-icon me-2">🌸</span>
-                    Bienvenido al Rally Fotográfico: Lugares de Asia
+                    Galería de Imágenes de Asia
                     <span class="asia-icon ms-2">🏯</span>
-                </h2>
-                <div class="mb-3 d-flex gap-2 justify-content-center">
-                    <p class="lead text-center mb-0">
-                        ¡Participa en nuestro Rally Fotográfico dedicado a los lugares más impresionantes de Asia!<br>
-                        Sube tus imágenes de rincones asiáticos, compite por ser una de las fotos admitidas y comparte
-                        tu visión con la comunidad.<br>
-                        Las mejores imágenes serán seleccionadas por el jurado y podrán optar a premios especiales.<br>
-                        ¡No pierdas la oportunidad de mostrar tu talento y descubrir Asia a través de la fotografía!
-                    </p>
-                </div>
-                <h4 class="fw-bold text-center mt-4" style="font-size:1.35rem;">Vota tu imagen favorita de Asia</h4>
+                </h3>
                 <div class="row justify-content-center">
                     @for (imagen of imagenesAdmitidas; track $index) {
                     <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
                         <div class="card shadow asia-card w-100">
-                            <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                            <img [src]="'https://proyecto-integrado.onrender.com/' +imagen.ruta"
                                 class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
                             <div class="card-body text-center">
                                 <div class="mb-2 fw-semibold" style="color:#b23c17;">
@@ -88,7 +79,7 @@
                     @for (imagen of imagenesRanking; track $index) {
                     <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
                         <div class="card shadow asia-card w-100">
-                            <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                            <img [src]="getImageUrl(imagen.ruta)"
                                 class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
                             <div class="card-body text-center">
                                 <span class="fw-bold" style="color:#b23c17;">
@@ -109,7 +100,9 @@
                     </div>
                     }
                     } @else {
-                    <div class="alert alert-info text-center">Aún no hay imágenes votadas.</div>
+                    <div class="alert alert-info text-center">
+                        No hay imágenes votadas aún. ¡Sé el primero en votar!
+                    </div>
                     }
                 </div>
             </div>

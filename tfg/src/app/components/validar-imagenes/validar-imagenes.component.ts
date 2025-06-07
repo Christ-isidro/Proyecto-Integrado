@@ -15,7 +15,12 @@ export class ValidarImagenesComponent {
   public imagen: Imagen = <Imagen>{};
   public form: FormGroup;
 
-  constructor(private fb: FormBuilder, private ar: ActivatedRoute, private router: Router, private servicio: ImagenService) {
+  constructor(
+    private fb: FormBuilder,
+    private ar: ActivatedRoute,
+    private router: Router,
+    private servicio: ImagenService,
+  ) {
     this.form = this.fb.group({
       estado: ['', Validators.required]
     });
@@ -47,6 +52,8 @@ export class ValidarImagenesComponent {
   }
 
   onSubmit() {
+    if (this.form.invalid) return;
+    
     console.log('Formulario enviado:', this.form.value);
     this.servicio.ValidarImagen(this.imagen.id_imagen, this.form.value.estado).subscribe({
       next: (res) => {
@@ -58,6 +65,6 @@ export class ValidarImagenesComponent {
         console.error('Error al validar imagen:', err);
         alert('Error al validar imagen');
       }
-    })
+    });
   }
 }

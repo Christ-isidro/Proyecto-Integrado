@@ -1,17 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Imagen } from '../models/imagen';
 import { JsonPipe } from '@angular/common';
 import { Usuario } from '../models/usuario';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImagenService {
-  private url: string = environment.url;
-  
-  constructor(private http: HttpClient) { }
+
+  private url = environment.apiUrl;
+  constructor(
+    private http: HttpClient,
+  ) { }
 
   ListarImagenes() {
     let p = JSON.stringify({
@@ -35,17 +39,19 @@ export class ImagenService {
     return this.http.post<Imagen[]>(this.url, p);
   }
 
-  SubirImagen(file: File, id_usuario: number, titulo: string) {
+  uploadImage(file: File, id_usuario: number, titulo: string): Observable<any> {
     const formData = new FormData();
     formData.append('imagen', file);
     formData.append('id_usuario', id_usuario.toString());
     formData.append('titulo', titulo);
-    formData.append('accion', 'SubirImagen');
-    
-    return this.http.post(this.url, formData, {
-      reportProgress: true,
-      observe: 'events'
-    });
+
+    const apiUrl = this.url;
+    console.log('Uploading image to:', apiUrl);
+
+    return this.http.post(`${apiUrl}/subir_imagen.php`, formData).pipe(
+      tap(response => console.log('Upload response:', response)),
+      catchError(this.handleError)
+    );
   }
 
   eliminarImagen(id_imagen: number) {
@@ -60,8 +66,23 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ValidarImagen",
       id_imagen: id_imagen,
-      estado: estado,
+      estado: estado
     });
     return this.http.post<Imagen>(this.url, p);
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    console.error('Image service error:', error);
+    let errorMessage = 'Ha ocurrido un error con la imagen.';
+
+    if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Error del lado del servidor
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+    }
+
+    return throwError(() => new Error(errorMessage));
   }
 }

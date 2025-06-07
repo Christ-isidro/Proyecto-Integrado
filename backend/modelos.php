@@ -254,43 +254,41 @@ class Modelo
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-    public function SubirImagen($file, $id_usuario, $titulo)
+
+    public function ActualizarRutasImagenes()
     {
-        global $uploadDir;
-
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('photo_', true) . '.' . $extension;
-        $relativePath = 'images/' . $filename;
-        $fullPath = $uploadDir . $filename;
-
-        if (!move_uploaded_file($file['tmp_name'], $fullPath)) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Error al mover el archivo.']);
-            exit;
-        }
-
         try {
-            $stmt = $this->pdo->prepare("INSERT INTO imagenes (ruta, id_usuario, titulo, estado) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$relativePath, $id_usuario, $titulo, 'pendiente']);
-            if ($stmt->rowCount() === 0) {
-                http_response_code(500);
-                echo json_encode(['success' => false, 'message' => 'Error al insertar en la base de datos.']);
-                exit;
-            }
-            echo json_encode([
-                'success' => true,
-                'message' => 'Imagen subida correctamente.',
-                'ruta' => $relativePath
-            ]);
-            exit;
+            $consulta = "UPDATE imagenes SET ruta = REPLACE(ruta, 'images/', 'uploads/')";
+            $stmt = $this->pdo->prepare($consulta);
+            $stmt->execute();
+            return true;
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Error en la base de datos.']);
-            exit;
+            die($e->getMessage());
+        }
+    }
+
+    public function SubirImagen($imagen, $id_usuario, $titulo)
+    {
+        $target_dir = "uploads/";
+        $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
+        $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
+        $target_file = $target_dir . $unique_filename;
+
+        // Solo guardamos la ruta relativa en la base de datos
+        $ruta_relativa = $target_file;  // uploads/photo_xxxxx.jpg
+
+        if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
+            $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta) VALUES (?, ?, ?)";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bind_param("iss", $id_usuario, $titulo, $ruta_relativa);
+            
+            if ($stmt->execute()) {
+                return ["success" => true, "message" => "Imagen subida correctamente", "ruta" => $ruta_relativa];
+            } else {
+                return ["success" => false, "message" => "Error al guardar en la base de datos"];
+            }
+        } else {
+            return ["success" => false, "message" => "Error al subir la imagen"];
         }
     }
 }
