@@ -17,52 +17,50 @@
                 Subir Imagen de Asia
             </h3>
             <form [formGroup]="form" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="titulo">Título de la imagen</label>
-                    <input type="text" id="titulo" formControlName="titulo" class="form-control" required>
-                    <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="alert alert-danger">
-                        El título es requerido
+                <div class="mb-3 text-center">
+                    <label for="imagen" class="form-label w-100">Selecciona una imagen de un lugar de Asia:</label>
+                    <input type="file" id="imagen" class="form-control" (change)="onFileSelected($event)" accept="image/*" />
+                    @if (form.controls["imagen"].invalid && (form.controls["imagen"].dirty ||
+                    form.controls["imagen"].touched)) {
+                    <div class="alert alert-danger mt-2">Imagen obligatoria</div>
+                    }
+                </div>
+                <div class="mb-3 text-center">
+                    @if (previewUrl) {
+                    <img [src]="previewUrl" alt="Vista previa" class="img-fluid rounded shadow asia-img"
+                        style="max-width:100%; max-height:350px; margin:auto; display:block;" />
+                    }
+                </div>
+                <div class="mb-3">
+                    <label for="titulo" class="form-label">Título de la imagen:</label>
+                    <input type="text" id="titulo" class="form-control" formControlName="titulo"
+                        placeholder="Título descriptivo" />
+                    @if (form.controls["titulo"].invalid && (form.controls["titulo"].dirty ||
+                    form.controls["titulo"].touched)) {
+                    <div class="alert alert-danger mt-2">El título es obligatorio</div>
+                    }
+                </div>
+
+                @if (uploadProgress > 0 && uploadProgress < 100) {
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress">
+                            {{uploadProgress}}%
+                        </div>
                     </div>
-                </div>
+                }
 
-                <div class="form-group">
-                    <label for="imagen">Seleccionar imagen</label>
-                    <input type="file" id="imagen" (change)="onFileSelected($event)" class="form-control" accept="image/*" required>
-                    <div *ngIf="form.get('imagen')?.invalid && form.get('imagen')?.touched" class="alert alert-danger">
-                        La imagen es requerida
+                @if (uploadError) {
+                    <div class="alert alert-danger mb-3">
+                        {{uploadError}}
                     </div>
-                </div>
-
-                <!-- Preview de la imagen -->
-                <div *ngIf="previewUrl" class="preview-container">
-                    <img [src]="previewUrl" alt="Preview" class="img-preview">
-                </div>
-
-                <!-- Barra de progreso -->
-                <div *ngIf="isUploading" class="progress mt-3">
-                    <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress">
-                        {{uploadProgress}}%
-                    </div>
-                </div>
-
-                <!-- Mensajes de error -->
-                <div *ngIf="uploadError" class="alert alert-danger mt-3">
-                    {{uploadError}}
-                </div>
-
-                <!-- Mensaje de éxito -->
-                <div *ngIf="uploadSuccess" class="alert alert-success mt-3">
-                    ¡Imagen subida correctamente! Redirigiendo...
-                </div>
+                }
 
                 <div class="d-flex gap-2">
-                    <button class="btn btn-secondary w-100" type="button" (click)="cancelar()" [disabled]="isUploading">
+                    <button class="btn btn-secondary w-100" type="button" (click)="cancelar()">
                         <i class="bi bi-arrow-left"></i> Cancelar
                     </button>
-                    <button class="btn btn-success w-100" type="submit" [disabled]="form.invalid || isUploading">
-                        <i class="bi bi-cloud-upload"></i>
-                        <span *ngIf="!isUploading">Subir Imagen</span>
-                        <span *ngIf="isUploading">Subiendo...</span>
+                    <button class="btn btn-success w-100" type="submit" [disabled]="form.invalid || uploadProgress > 0">
+                        <i class="bi bi-cloud-upload"></i> Subir Imagen
                     </button>
                 </div>
             </form>
