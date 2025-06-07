@@ -21,21 +21,20 @@
                 <div class="col-md-4 mb-4">
                     <div class="card shadow h-100">
                         <img [src]="getImageUrl(imagen.ruta)" class="card-img-top asia-img"
-                            alt="Imagen de {{ imagen.nombre_usuario }}"
-                            style="height: 200px; object-fit: cover;">
+                            alt="Imagen de {{ imagen.nombre_usuario }}" style="height: 200px; object-fit: cover;">
                         <div class="card-body">
                             <h5 class="card-title">{{ imagen.titulo }}</h5>
                             <p class="card-text"><strong>Usuario:</strong> {{ imagen.nombre_usuario }}</p>
                             <p class="card-text">
-                                <span [class.badge-warning]="imagen.estado === 'pendiente'"
-                                    [class.badge-success]="imagen.estado === 'admitido'"
-                                    [class.badge-danger]="imagen.estado === 'rechazado'"
-                                    class="badge">
+                                <span [class.bg-warning]="imagen.estado === 'pendiente'"
+                                    [class.bg-success]="imagen.estado === 'admitido'"
+                                    [class.bg-danger]="imagen.estado === 'rechazado'" class="badge text-dark">
                                     Estado: {{ imagen.estado }}
                                 </span>
                             </p>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary flex-grow-1" (click)="validar(imagen.id_imagen, imagen.estado)">
+                                <button class="btn btn-primary flex-grow-1"
+                                    (click)="validar(imagen.id_imagen, imagen.estado)">
                                     <i class="bi bi-check-circle"></i> Validar
                                 </button>
                                 <button class="btn btn-danger flex-grow-1" (click)="eliminarImagen(imagen.id_imagen)">
