@@ -55,11 +55,11 @@ if ($objeto != null) {
             break;
 
         case 'ListarImagenes':
-            print json_encode($modelo->ListarImagenes());
+            $modelo->ListarImagenes();
             break;
 
         case 'ListarImagenesAdmitidas':
-            print json_encode($modelo->ListarImagenesAdmitidas());
+            $modelo->ListarImagenesAdmitidas();
             break;
 
         case 'ObtenerIdUsuario':
@@ -67,7 +67,7 @@ if ($objeto != null) {
             break;
 
         case 'ObtenerImagenesPorUsuario':
-            print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
+           $modelo->ObtenerImagenesPorUsuario($objeto->id_usuario);
             break;
 
 
