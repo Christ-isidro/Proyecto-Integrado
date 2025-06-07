@@ -59,7 +59,7 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
-    return this.http.post<Imagen[]>(this.url, p).pipe(
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
@@ -75,7 +75,7 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ListarImagenesAdmitidas"
     });
-    return this.http.post<Imagen[]>(this.url, p).pipe(
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
@@ -92,7 +92,7 @@ export class ImagenService {
       accion: "ObtenerImagenesPorUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<Imagen[]>(this.url, p).pipe(
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
@@ -111,7 +111,14 @@ export class ImagenService {
     formData.append('titulo', titulo);
     formData.append('accion', 'SubirImagen');
 
-    return this.http.post(this.url, formData, {
+    console.log('Uploading image with data:', {
+      id_usuario,
+      titulo,
+      fileName: file.name,
+      fileSize: file.size
+    });
+
+    return this.http.post(`${this.url}/servicios.php`, formData, {
       reportProgress: true,
       observe: 'events'
     }).pipe(
@@ -122,7 +129,10 @@ export class ImagenService {
           console.log('Upload complete:', event);
         }
       }),
-      catchError(this.handleError)
+      catchError(error => {
+        console.error('Upload error:', error);
+        return this.handleError(error);
+      })
     );
   }
 
@@ -131,7 +141,7 @@ export class ImagenService {
       accion: "BorrarImagen",
       id_imagen: id_imagen
     });
-    return this.http.post<Imagen>(this.url, p);
+    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
   ValidarImagen(id_imagen: number, estado: string) {
@@ -140,7 +150,7 @@ export class ImagenService {
       id_imagen: id_imagen,
       estado: estado
     });
-    return this.http.post<Imagen>(this.url, p);
+    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
   private handleError(error: HttpErrorResponse) {
