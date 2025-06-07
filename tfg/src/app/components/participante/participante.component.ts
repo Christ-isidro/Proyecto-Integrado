@@ -40,6 +40,17 @@ export class ParticipanteComponent implements OnInit {
     });
   }
 
+  irAEditarPerfil() {
+    this.router.navigate(['/editar-perfil', this.usuario.id]);
+  }
+
+  cerrarSesion() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/']);
+  }
+
+
   getImageUrl(ruta: string): string {
     return this.imagenServicio.getImageUrl(ruta);
   }
@@ -64,6 +75,6 @@ export class ParticipanteComponent implements OnInit {
           alert("No se ha podido eliminar la imagen");
         }
       });
-    }
+    } 
   }
 }
