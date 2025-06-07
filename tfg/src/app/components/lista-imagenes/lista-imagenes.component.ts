@@ -24,6 +24,10 @@ export class ListaImagenesComponent implements OnInit {
     return this.imagenService.getImageUrl(ruta);
   }
 
+  volver(): void {
+    this.router.navigate(['/admin']);
+  }
+
   cargarImagenes(): void {
     this.imagenService.ListarImagenes().subscribe({
       next: (data: Imagen[]) => {
