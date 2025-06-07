@@ -20,6 +20,10 @@ export class ListaImagenesComponent implements OnInit {
     this.cargarImagenes();
   }
 
+  getImageUrl(ruta: string): string {
+    return this.imagenService.getImageUrl(ruta);
+  }
+
   cargarImagenes(): void {
     this.imagenService.ListarImagenes().subscribe({
       next: (data: Imagen[]) => {
@@ -31,20 +35,13 @@ export class ListaImagenesComponent implements OnInit {
     });
   }
 
-  validar(id: number, estado: string): void {
-    this.imagenService.ValidarImagen(id, estado).subscribe({
-      next: () => {
-        this.cargarImagenes();
-      },
-      error: (error: any) => {
-        console.error('Error al validar imagen:', error);
-      }
-    });
+  validar(id_imagen: number, estado: string): void {
+    this.router.navigate(['/validar', id_imagen]); 
   }
 
-  eliminarImagen(id: number): void {
+  eliminarImagen(id_imagen: number): void {
     if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
-      this.imagenService.eliminarImagen(id).subscribe({
+      this.imagenService.eliminarImagen(id_imagen).subscribe({
         next: () => {
           this.cargarImagenes();
         },

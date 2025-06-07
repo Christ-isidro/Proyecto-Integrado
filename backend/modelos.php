@@ -280,9 +280,7 @@ class Modelo
         if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
             $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta) VALUES (?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->bind_param("iss", $id_usuario, $titulo, $ruta_relativa);
-            
-            if ($stmt->execute()) {
+            if ($stmt->execute([$id_usuario, $titulo, $ruta_relativa])) {
                 return ["success" => true, "message" => "Imagen subida correctamente", "ruta" => $ruta_relativa];
             } else {
                 return ["success" => false, "message" => "Error al guardar en la base de datos"];

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ImagenService } from '../../services/imagen.service';
 import { Imagen } from '../../models/imagen';
 import { Router, RouterLink } from '@angular/router';
@@ -9,11 +9,12 @@ import { Router, RouterLink } from '@angular/router';
   templateUrl: './inicio.component.html',
   styleUrls: ['./inicio.component.css']
 })
-export class InicioComponent {
+export class InicioComponent implements OnInit {
 
   imagenesAdmitidas: Imagen[] = [];
   imagenesRanking: Imagen[] = [];
   idUsuario = localStorage.getItem('usuario');
+  votosUsuario: number[] = [];
 
   constructor(
     private imagenService: ImagenService, 
@@ -30,6 +31,10 @@ export class InicioComponent {
         console.error("Error al cargar las imágenes admitidas:", error);
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.cargarVotosUsuario();
   }
 
   volverLogin() {
@@ -117,6 +122,14 @@ export class InicioComponent {
       .map(img => ({ ...img, votos: votosPorImagen[img.id_imagen] || 0 }))
       .sort((a, b) => b.votos - a.votos)
       .slice(0, 3); // Top 3, quita esto si quieres mostrar todas
+  }
+
+  getImageUrl(ruta: string): string {
+    return this.imagenService.getImageUrl(ruta);
+  }
+
+  cargarVotosUsuario() {
+    // Implementa la lógica para cargar los votos del usuario desde localStorage
   }
 
 }

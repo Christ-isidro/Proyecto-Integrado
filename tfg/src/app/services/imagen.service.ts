@@ -13,6 +13,9 @@ import { catchError, tap } from 'rxjs/operators';
 export class ImagenService {
   private url = environment.apiUrl;
   private isProduction = window.location.hostname !== 'localhost';
+  private baseImagePath = this.isProduction 
+    ? 'https://proyecto-integrado.onrender.com'
+    : 'http://localhost/Proyecto%20Integrado/backend';
 
   constructor(
     private http: HttpClient
@@ -20,7 +23,8 @@ export class ImagenService {
     console.log('ImagenService initialized with:', {
       url: this.url,
       isProduction: this.isProduction,
-      hostname: window.location.hostname
+      hostname: window.location.hostname,
+      baseImagePath: this.baseImagePath
     });
   }
 
@@ -32,18 +36,14 @@ export class ImagenService {
       return relativePath;
     }
 
-    // Asegurarse de que la ruta use el formato correcto
+    // Asegurarse de que la ruta use el formato correcto y siempre use uploads
     const cleanPath = relativePath
       .replace(/^\/+/, '')
       .replace(/\\/g, '/')
       .replace(/^(images|uploads)\//, '');
-
-    // Construir la URL completa según el entorno
-    const baseUrl = this.isProduction
-      ? 'https://proyecto-integrado.onrender.com/uploads/'
-      : 'http://localhost/Proyecto%20Integrado/backend/uploads/';
-
-    const fullUrl = baseUrl + cleanPath;
+    
+    // Construir la URL completa siempre usando uploads
+    const fullUrl = `${this.baseImagePath}/uploads/${cleanPath}`;
     
     console.log('Generated image URL:', {
       relativePath,

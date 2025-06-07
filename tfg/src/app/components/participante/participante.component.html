@@ -44,7 +44,7 @@
                     @for (imagen of imagenes; track $index) {
                     <div class="col-md-4 mb-3">
                         <div class="card shadow asia-card">
-                            <img [src]="'https://proyecto-integrado.onrender.com/' +imagen.ruta" class="card-img-top asia-img" 
+                            <img [src]="getImageUrl(imagen.ruta)" class="card-img-top asia-img" 
                                 alt="Imagen de {{ usuario.nombre }}"
                                 style="height: 250px; object-fit: cover;">
                             <div class="card-body text-center">

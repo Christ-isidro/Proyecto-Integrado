@@ -45,6 +45,10 @@ export class DetalleUsuarioComponent {
     }
   }
 
+  getImageUrl(ruta: string): string {
+    return this.servicioImagen.getImageUrl(ruta);
+  }
+
   volver() {
     this.router.navigate(['/usuarios']);
   }

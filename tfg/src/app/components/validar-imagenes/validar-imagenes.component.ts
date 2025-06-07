@@ -24,6 +24,8 @@ export class ValidarImagenesComponent {
     this.form = this.fb.group({
       estado: ['', Validators.required]
     });
+
+    let id_imagen = parseInt(this.ar.snapshot.params["id_imagen"]);
   }
 
   ngOnInit() {
@@ -66,5 +68,9 @@ export class ValidarImagenesComponent {
         alert('Error al validar imagen');
       }
     });
+  }
+
+  getImageUrl(ruta: string): string {
+    return this.servicio.getImageUrl(ruta);
   }
 }
