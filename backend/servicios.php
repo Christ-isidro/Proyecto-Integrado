@@ -1,14 +1,14 @@
 <?php
-header('Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=UTF-8');
+header("Content-Type: application/json; charset=UTF-8");
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Origin: *');
+header('Acces-Control-Allow-Headers: *');
+header("Access-Control-Allow-Origin: *"); // allow request from all origin
+header('Access-Control-Allow-Credentials: true');
+header("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
+header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
 
 require 'vendor/autoload.php';
 require_once 'config.php';
@@ -28,36 +28,18 @@ if (!file_exists($uploadsDir)) {
 //  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
 //  se procesa la subida de una imagen.
 if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
-    try {
-        //  Comprobamos que se ha enviado un archivo y un id de usuario.
-        if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
-            // Verificar el tipo de archivo
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime_type = finfo_file($finfo, $_FILES['imagen']['tmp_name']);
-            finfo_close($finfo);
-
-            if (strpos($mime_type, 'image/') !== 0) {
-                throw new Exception('El archivo debe ser una imagen.');
-            }
-
-            //  Llamamos al método SubirImagen del modelo
-            $resultado = $modelo->SubirImagen(
-                $_FILES['imagen'],
-                $_POST['id_usuario'],
-                titulo: $_POST['titulo']
-            );
-
-            // Enviamos la respuesta
-            echo json_encode($resultado);
-        } else {
-            throw new Exception('Datos incompletos.');
-        }
-    } catch (Exception $e) {
+    //  Comprobamos que se ha enviado un archivo y un id de usuario.
+    if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
+        //  Llamamos al método SubirImagen del modelo, pasándole el archivo y el id del usuario.
+        //  El método SubirImagen se encargará de procesar la imagen y guardarla en el servidor.
+        $modelo->SubirImagen(
+            $_FILES['imagen'],
+            $_POST['id_usuario'],
+            titulo: $_POST['titulo']
+        );
+    } else {
         http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => $e->getMessage()
-        ]);
+        echo json_encode(['error' => 'Datos incompletos.']);
     }
     exit;
 }

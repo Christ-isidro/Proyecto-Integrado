@@ -273,7 +273,7 @@ class Modelo
         $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
         $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
         $target_file = $target_dir . $unique_filename;
-
+        
         // Solo guardamos la ruta relativa en la base de datos
         $ruta_relativa = $target_file;  // uploads/photo_xxxxx.jpg
 
