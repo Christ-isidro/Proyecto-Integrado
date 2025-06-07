@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>\
+    <title>Subir Imagen</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
 </head>
@@ -17,37 +17,49 @@
                 Subir Imagen de Asia
             </h3>
             <form [formGroup]="form" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="titulo">Título de la imagen</label>
-                    <input type="file" id="imagen" class="form-control" (change)="onFileSelected($event)" />
-                    <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="alert alert-danger">
-                        El título es requerido
+                <div class="mb-3">
+                    <label for="titulo" class="form-label">Título de la imagen</label>
+                    <input type="text" id="titulo" formControlName="titulo" class="form-control" required>
+                    <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="alert alert-danger mt-2">
+                        El título es obligatorio y debe tener entre 3 y 50 caracteres
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="imagen">Seleccionar imagen</label>
+                <div class="mb-3">
+                    <label for="imagen" class="form-label">Seleccionar imagen</label>
                     <input type="file" id="imagen" (change)="onFileSelected($event)" class="form-control" accept="image/*" required>
-                    <div *ngIf="form.get('imagen')?.invalid && form.get('imagen')?.touched" class="alert alert-danger">
+                    <div *ngIf="form.get('imagen')?.invalid && form.get('imagen')?.touched" class="alert alert-danger mt-2">
                         La imagen es requerida
                     </div>
                 </div>
 
                 <!-- Preview de la imagen -->
-                <div *ngIf="previewUrl" class="preview-container">
-                    <img [src]="previewUrl" alt="Preview" class="img-preview">
+                <div *ngIf="previewUrl" class="preview-container mb-3">
+                    <img [src]="previewUrl" alt="Preview" class="img-preview img-fluid rounded">
                 </div>
-                    <div class="alert alert-danger mt-2">El título es obligatorio y debe tener entre 3 y 50 caracteres
-                <div *ngIf="uploadError" class="alert alert-danger mt-3">
-                    
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-secondary w-100" type="button" (click)="cancelar()">
-                            <i class="bi bi-arrow-left"></i> Cancelar
-                        </button>
-                        <button class="btn btn-success w-100" type="submit" [disabled]="form.invalid">
-                            <i class="bi bi-cloud-upload"></i> Subir Imagen
-                        </button>
+
+                <!-- Barra de progreso -->
+                <div *ngIf="isUploading" class="progress mb-3">
+                    <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress">
+                        {{uploadProgress}}%
                     </div>
+                </div>
+
+                <!-- Mensajes de error y éxito -->
+                <div *ngIf="uploadError" class="alert alert-danger mb-3">
+                    {{uploadError}}
+                </div>
+                <div *ngIf="uploadSuccess" class="alert alert-success mb-3">
+                    ¡Imagen subida correctamente! Redirigiendo...
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-secondary w-100" type="button" (click)="cancelar()" [disabled]="isUploading">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </button>
+                    <button class="btn btn-success w-100" type="submit" [disabled]="form.invalid || isUploading">
+                        <i class="bi bi-cloud-upload"></i>
+                        <span *ngIf="!isUploading">Subir Imagen</span>
                         <span *ngIf="isUploading">Subiendo...</span>
                     </button>
                 </div>
