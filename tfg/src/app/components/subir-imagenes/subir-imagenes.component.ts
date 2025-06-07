@@ -1,9 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ImagenService } from '../../services/imagen.service';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
-import { HttpEventType, HttpResponse } from '@angular/common/http';
+import { HttpEventType, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-subir-imagenes',
@@ -23,6 +23,7 @@ export class SubirImagenesComponent implements OnInit {
     private usuarioService: UsuarioService,
     private imagenService: ImagenService,
     private router: Router,
+    private ar: ActivatedRoute,
     private formBuilder: FormBuilder
   ) {
     this.form = this.formBuilder.group({
@@ -32,10 +33,22 @@ export class SubirImagenesComponent implements OnInit {
   }
 
   ngOnInit() {
-    const usuario = localStorage.getItem('usuario');
-    if (usuario) {
-      const datos = JSON.parse(usuario);
-      this.id_usuario = datos.id;
+    // Obtener el ID del usuario de los parámetros de la ruta
+    const id = this.ar.snapshot.params['id'];
+    if (id) {
+      this.id_usuario = parseInt(id);
+    } else {
+      // Si no hay ID en la ruta, intentar obtenerlo del localStorage
+      const usuarioGuardado = localStorage.getItem('usuario');
+      if (usuarioGuardado) {
+        const usuario = JSON.parse(usuarioGuardado);
+        this.id_usuario = usuario.id;
+      }
+    }
+
+    if (!this.id_usuario) {
+      console.error('No se pudo obtener el ID del usuario');
+      this.router.navigate(['/login']);
     }
   }
 
@@ -43,6 +56,26 @@ export class SubirImagenesComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.file = input.files[0];
+      
+      // Validar el tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+      if (!allowedTypes.includes(this.file.type)) {
+        this.uploadError = 'Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.';
+        this.file = null;
+        input.value = '';
+        return;
+      }
+
+      // Validar el tamaño del archivo (máximo 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (this.file.size > maxSize) {
+        this.uploadError = 'El archivo es demasiado grande. El tamaño máximo permitido es 5MB.';
+        this.file = null;
+        input.value = '';
+        return;
+      }
+
+      this.uploadError = null;
       this.form.get('imagen')?.setValue(this.file);
 
       const reader = new FileReader();
@@ -54,29 +87,52 @@ export class SubirImagenesComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid || !this.file) return;
+    if (this.form.valid && this.file && this.id_usuario) {
+      this.uploadError = null;
+      this.uploadProgress = 0;
 
-    this.uploadProgress = 0;
-    this.uploadError = null;
+      console.log('Iniciando subida de imagen:', {
+        fileName: this.file.name,
+        fileSize: this.file.size,
+        fileType: this.file.type,
+        id_usuario: this.id_usuario,
+        titulo: this.form.get('titulo')?.value
+      });
 
-    this.imagenService.uploadImage(this.file, this.id_usuario, this.form.value.titulo)
-      .subscribe({
-        next: (event: any) => {
+      this.imagenService.uploadImage(
+        this.file,
+        this.id_usuario,
+        this.form.get('titulo')?.value
+      ).subscribe({
+        next: (event) => {
           if (event.type === HttpEventType.UploadProgress) {
-            this.uploadProgress = Math.round(100 * event.loaded / event.total);
-          } else if (event instanceof HttpResponse) {
-            console.log('Imagen subida correctamente:', event.body);
-            this.router.navigate(['/perfil']);
+            this.uploadProgress = Math.round(100 * event.loaded / (event.total || event.loaded));
+          } else if (event.type === HttpEventType.Response) {
+            if (event.body?.success) {
+              console.log('Imagen subida exitosamente:', event.body);
+              this.router.navigate(['/participante']);
+            } else {
+              this.uploadError = event.body?.error || 'Error desconocido al subir la imagen';
+            }
           }
         },
-        error: (err) => {
-          console.error('Error al subir imagen:', err);
-          this.uploadError = 'Error al subir la imagen. Por favor, inténtalo de nuevo.';
+        error: (error: HttpErrorResponse) => {
+          console.error('Error al subir imagen:', error);
+          if (error.error?.error) {
+            this.uploadError = error.error.error;
+          } else if (error.message) {
+            this.uploadError = error.message;
+          } else {
+            this.uploadError = 'Error desconocido al subir la imagen';
+          }
         }
       });
+    } else {
+      this.uploadError = 'Por favor, completa todos los campos requeridos.';
+    }
   }
 
   cancelar() {
-    this.router.navigate(['/perfil']);
+    this.router.navigate(['/participante']);
   }
 }

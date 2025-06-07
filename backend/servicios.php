@@ -5,6 +5,11 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: *');
 header('Access-Control-Allow-Credentials: true');
 
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
@@ -19,6 +24,15 @@ use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
 $modelo = new Modelo();
+
+// Log function
+function logError($message, $data = null) {
+    $logMessage = date('Y-m-d H:i:s') . " - " . $message;
+    if ($data) {
+        $logMessage .= " - Data: " . json_encode($data);
+    }
+    error_log($logMessage . "\n", 3, "upload_errors.log");
+}
 
 // Asegurarse de que el directorio uploads existe
 if (!file_exists('uploads')) {
@@ -45,20 +59,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
 //  se procesa la subida de una imagen.
 if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
     try {
+        logError("Iniciando subida de imagen", $_POST);
+        logError("FILES array", $_FILES);
+
         //  Comprobamos que se ha enviado un archivo y un id de usuario.
-        if (!isset($_FILES['imagen']) || !isset($_POST['id_usuario'])) {
-            throw new Exception('Datos incompletos.');
+        if (!isset($_FILES['imagen'])) {
+            throw new Exception('No se ha enviado ninguna imagen.');
+        }
+
+        if (!isset($_POST['id_usuario'])) {
+            throw new Exception('No se ha especificado el ID de usuario.');
         }
 
         if ($_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('Error al subir el archivo.');
+            $uploadErrors = array(
+                UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
+                UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido por el formulario.',
+                UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
+                UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
+                UPLOAD_ERR_CANT_WRITE => 'Error al escribir el archivo.',
+                UPLOAD_ERR_EXTENSION => 'Una extensión de PHP detuvo la subida.'
+            );
+            $errorMessage = isset($uploadErrors[$_FILES['imagen']['error']]) 
+                ? $uploadErrors[$_FILES['imagen']['error']]
+                : 'Error desconocido al subir el archivo.';
+            throw new Exception($errorMessage);
         }
 
         // Validar el tipo de archivo
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
         $fileType = mime_content_type($_FILES['imagen']['tmp_name']);
         if (!in_array($fileType, $allowedTypes)) {
-            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
+            throw new Exception("Tipo de archivo no permitido: {$fileType}. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.");
         }
 
         $resultado = $modelo->SubirImagen(
@@ -67,8 +100,10 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
             $_POST['titulo']
         );
 
+        logError("Imagen subida exitosamente", $resultado);
         echo json_encode($resultado);
     } catch (Exception $e) {
+        logError("Error al subir imagen: " . $e->getMessage());
         http_response_code(400);
         echo json_encode([
             'success' => false,
