@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 import { Usuario } from '../models/usuario';
 import { JsonPipe } from '@angular/common';
 import { getActiveConsumer } from '@angular/core/primitives/signals';
