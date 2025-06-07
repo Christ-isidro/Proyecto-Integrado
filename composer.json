@@ -1,8 +1,18 @@
 {
+    "name": "tfg/backend",
+    "description": "Backend TFG",
+    "type": "project",
     "require": {
         "php": "^8.0",
         "firebase/php-jwt": "^6.0",
         "ext-pdo": "*",
         "ext-pdo_pgsql": "*"
-    }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 } 
