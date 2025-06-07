@@ -1,1 +1,3 @@
-export const environment = {};
+export const environment = {
+    url: 'https://proyecto-integrado.onrender.com'
+};
