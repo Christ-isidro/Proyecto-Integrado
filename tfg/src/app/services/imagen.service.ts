@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Imagen } from '../models/imagen';
 import { JsonPipe } from '@angular/common';
 import { Usuario } from '../models/usuario';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap, retry } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -25,13 +25,6 @@ export class ImagenService {
       isProduction: this.isProduction,
       hostname: window.location.hostname,
       baseImagePath: this.baseImagePath
-    });
-  }
-
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
     });
   }
 
@@ -66,8 +59,7 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p, { headers: this.getHeaders() }).pipe(
-      retry(3),
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
@@ -75,8 +67,7 @@ export class ImagenService {
             img.ruta = this.getImageUrl(img.ruta);
           }
         });
-      }),
-      catchError(this.handleError)
+      })
     );
   }
 
@@ -84,8 +75,7 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ListarImagenesAdmitidas"
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p, { headers: this.getHeaders() }).pipe(
-      retry(3),
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
@@ -93,8 +83,7 @@ export class ImagenService {
             img.ruta = this.getImageUrl(img.ruta);
           }
         });
-      }),
-      catchError(this.handleError)
+      })
     );
   }
 
@@ -103,8 +92,7 @@ export class ImagenService {
       accion: "ObtenerImagenesPorUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p, { headers: this.getHeaders() }).pipe(
-      retry(3),
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
@@ -112,8 +100,7 @@ export class ImagenService {
             img.ruta = this.getImageUrl(img.ruta);
           }
         });
-      }),
-      catchError(this.handleError)
+      })
     );
   }
 
@@ -128,20 +115,12 @@ export class ImagenService {
       id_usuario,
       titulo,
       fileName: file.name,
-      fileSize: file.size,
-      url: `${this.url}/servicios.php`
-    });
-
-    const headers = new HttpHeaders({
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
+      fileSize: file.size
     });
 
     return this.http.post(`${this.url}/servicios.php`, formData, {
-      headers: headers,
       reportProgress: true,
-      observe: 'events',
-      withCredentials: false
+      observe: 'events'
     }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
@@ -162,10 +141,7 @@ export class ImagenService {
       accion: "BorrarImagen",
       id_imagen: id_imagen
     });
-    return this.http.post<Imagen>(`${this.url}/servicios.php`, p, { headers: this.getHeaders() }).pipe(
-      retry(3),
-      catchError(this.handleError)
-    );
+    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
   ValidarImagen(id_imagen: number, estado: string) {
@@ -174,10 +150,7 @@ export class ImagenService {
       id_imagen: id_imagen,
       estado: estado
     });
-    return this.http.post<Imagen>(`${this.url}/servicios.php`, p, { headers: this.getHeaders() }).pipe(
-      retry(3),
-      catchError(this.handleError)
-    );
+    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -186,16 +159,10 @@ export class ImagenService {
 
     if (error.error instanceof ErrorEvent) {
       // Error del lado del cliente
-      errorMessage = `Error del cliente: ${error.error.message}`;
-    } else if (error.status === 0) {
-      // Error de conexión/CORS
-      errorMessage = 'Error de conexión. Por favor, verifica tu conexión a internet o inténtalo más tarde.';
-    } else if (error.status === 502) {
-      // Bad Gateway
-      errorMessage = 'El servidor no está disponible en este momento. Por favor, inténtalo más tarde.';
+      errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Otros errores del servidor
-      errorMessage = `Error del servidor: ${error.status} - ${error.message}`;
+      // Error del lado del servidor
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
 
     return throwError(() => new Error(errorMessage));

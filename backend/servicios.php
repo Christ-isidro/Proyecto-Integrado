@@ -1,22 +1,22 @@
 <?php
-// Permitir solicitudes desde el dominio de Vercel
-header("Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Access-Control-Allow-Credentials: true");
-header('Content-Type: application/json; charset=utf-8');
+header("Content-Type: application/json; charset=UTF-8");
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Origin: *');
+header('Acces-Control-Allow-Headers: *');
+header("Access-Control-Allow-Origin: *"); // allow request from all origin
+header('Access-Control-Allow-Credentials: true');
+header("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
+header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-// Manejar la solicitud OPTIONS (preflight)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
 
 require 'vendor/autoload.php';
 require_once 'config.php';
 
+
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
+
 
 require_once 'modelos.php';
 $modelo = new Modelo();
@@ -26,16 +26,6 @@ $uploadsDir = __DIR__ . '/uploads';
 if (!file_exists($uploadsDir)) {
     mkdir($uploadsDir, 0777, true);
 }
-
-// Manejar errores de PHP
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    error_log("Error [$errno] $errstr en $errfile:$errline");
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $errstr]);
-    exit;
-});
 
 //  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
 //  se procesa la subida de una imagen.
@@ -65,7 +55,6 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
             throw new Exception('Datos incompletos.');
         }
     } catch (Exception $e) {
-        error_log("Error en SubirImagen: " . $e->getMessage());
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -76,79 +65,69 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
 }
 
 //  Con esta línea recogemos los datos (en formato JSON), enviados por el cliente:
-$datos = file_get_contents('php://input');
+$datos = file_get_contents('php://input');  //  $datos es un string, y no un objeto php
 //  Lo convertimos a un objeto php:
 $objeto = json_decode($datos);
 
 if ($objeto != null) {
-    try {
-        switch ($objeto->accion) {
-            //Listar
-            case 'ListarUsuarios':
+    switch ($objeto->accion) {
+
+        //Listar
+        case 'ListarUsuarios':
+            print json_encode($modelo->ListarUsuarios());
+            break;
+
+        case 'ListarImagenes':
+            print json_encode($modelo->ListarImagenes());
+            break;
+
+        case 'ListarImagenesAdmitidas':
+            print json_encode($modelo->ListarImagenesAdmitidas());
+            break;
+
+        case 'ObtenerIdUsuario':
+            print json_encode($modelo->ObtenerIdUsuario($objeto->id));
+            break;
+
+        case 'ObtenerImagenesPorUsuario':
+            print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
+            break;
+
+
+        //Insertar
+        case 'InsertarUsuario':
+            $modelo->InsertarUsuario($objeto->usuario);
+            break;
+
+        case 'RegistrarUsuario':
+            $modelo->RegistrarUsuario($objeto->usuario);
+            break;
+
+        //Modificar (Actualizar)
+        case 'EditarUsuario':
+            $modelo->EditarUsuario($objeto->usuario);
+            break;
+
+        case 'ValidarImagen':
+            $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
+            break;
+
+        //Borrar
+        case 'BorrarUsuario':
+            $modelo->BorrarUsuario($objeto->id);
+            if ($objeto->listado == "OK")
                 print json_encode($modelo->ListarUsuarios());
-                break;
+            else
+                print '{"result":"OK"}';
+            break;
 
-            case 'ListarImagenes':
-                print json_encode($modelo->ListarImagenes());
-                break;
+        case 'BorrarImagen':
+            $modelo->BorrarImagen($objeto->id_imagen);
+            break;
 
-            case 'ListarImagenesAdmitidas':
-                print json_encode($modelo->ListarImagenesAdmitidas());
-                break;
-
-            case 'ObtenerIdUsuario':
-                print json_encode($modelo->ObtenerIdUsuario($objeto->id));
-                break;
-
-            case 'ObtenerImagenesPorUsuario':
-                print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
-                break;
-
-            //Insertar
-            case 'InsertarUsuario':
-                $modelo->InsertarUsuario($objeto->usuario);
-                break;
-
-            case 'RegistrarUsuario':
-                $modelo->RegistrarUsuario($objeto->usuario);
-                break;
-
-            //Modificar (Actualizar)
-            case 'EditarUsuario':
-                $modelo->EditarUsuario($objeto->usuario);
-                break;
-
-            case 'ValidarImagen':
-                $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
-                break;
-
-            //Borrar
-            case 'BorrarUsuario':
-                $modelo->BorrarUsuario($objeto->id);
-                if ($objeto->listado == "OK")
-                    print json_encode($modelo->ListarUsuarios());
-                else
-                    print '{"result":"OK"}';
-                break;
-
-            case 'BorrarImagen':
-                $modelo->BorrarImagen($objeto->id_imagen);
-                break;
-
-            // Iniciar sesión
-            case 'IniciarSesion':
-                $modelo->IniciarSesion($objeto);
-                break;
-
-            default:
-                throw new Exception('Acción no válida');
-        }
-    } catch (Exception $e) {
-        error_log("Error en switch: " . $e->getMessage());
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => $e->getMessage()
-        ]);
+        // Iniciar sesión
+        case 'IniciarSesion':
+            $modelo->IniciarSesion($objeto);
+            break;
     }
 }
