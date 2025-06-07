@@ -5,7 +5,7 @@ import { Imagen } from '../models/imagen';
 import { JsonPipe } from '@angular/common';
 import { Usuario } from '../models/usuario';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap, map } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -55,54 +55,52 @@ export class ImagenService {
     return fullUrl;
   }
 
-  ListarImagenes(): Observable<Imagen[]> {
-    return this.http.get<Imagen[]>(`${this.url}/listar_imagenes.php`).pipe(
-      map(response => Array.isArray(response) ? response : []),
+  ListarImagenes() {
+    let p = JSON.stringify({
+      accion: "ListarImagenes"
+    });
+    return this.http.post<Imagen[]>(this.url, p).pipe(
       tap(imagenes => {
-        console.log('Imágenes recibidas:', imagenes);
-        if (imagenes && Array.isArray(imagenes)) {
-          imagenes.forEach(img => {
-            if (img && img.ruta) {
-              img.ruta = this.getImageUrl(img.ruta);
-            }
-          });
-        }
-      }),
-      catchError(this.handleError)
+        // Transformar las URLs de las imágenes
+        imagenes.forEach(img => {
+          if (img.ruta) {
+            img.ruta = this.getImageUrl(img.ruta);
+          }
+        });
+      })
     );
   }
 
-  ListarImagenesAdmitidas(): Observable<Imagen[]> {
-    return this.http.get<Imagen[]>(`${this.url}/listar_imagenes_admitidas.php`).pipe(
-      map(response => Array.isArray(response) ? response : []),
+  ListarImagenesAdmitidas() {
+    let p = JSON.stringify({
+      accion: "ListarImagenesAdmitidas"
+    });
+    return this.http.post<Imagen[]>(this.url, p).pipe(
       tap(imagenes => {
-        console.log('Imágenes admitidas recibidas:', imagenes);
-        if (imagenes && Array.isArray(imagenes)) {
-          imagenes.forEach(img => {
-            if (img && img.ruta) {
-              img.ruta = this.getImageUrl(img.ruta);
-            }
-          });
-        }
-      }),
-      catchError(this.handleError)
+        // Transformar las URLs de las imágenes
+        imagenes.forEach(img => {
+          if (img.ruta) {
+            img.ruta = this.getImageUrl(img.ruta);
+          }
+        });
+      })
     );
   }
 
-  ObtenerImagenesPorUsuario(id_usuario: number): Observable<Imagen[]> {
-    return this.http.get<Imagen[]>(`${this.url}/obtener_imagenes_por_usuario.php?id_usuario=${id_usuario}`).pipe(
-      map(response => Array.isArray(response) ? response : []),
+  ObtenerImagenesPorUsuario(id_usuario: number) {
+    let p = JSON.stringify({
+      accion: "ObtenerImagenesPorUsuario",
+      id_usuario: id_usuario
+    });
+    return this.http.post<Imagen[]>(this.url, p).pipe(
       tap(imagenes => {
-        console.log('Imágenes de usuario recibidas:', imagenes);
-        if (imagenes && Array.isArray(imagenes)) {
-          imagenes.forEach(img => {
-            if (img && img.ruta) {
-              img.ruta = this.getImageUrl(img.ruta);
-            }
-          });
-        }
-      }),
-      catchError(this.handleError)
+        // Transformar las URLs de las imágenes
+        imagenes.forEach(img => {
+          if (img.ruta) {
+            img.ruta = this.getImageUrl(img.ruta);
+          }
+        });
+      })
     );
   }
 
@@ -111,23 +109,29 @@ export class ImagenService {
     formData.append('imagen', file);
     formData.append('id_usuario', id_usuario.toString());
     formData.append('titulo', titulo);
+    formData.append('accion', 'SubirImagen');
 
-    return this.http.post(`${this.url}/subir_imagen.php`, formData).pipe(
+    return this.http.post(this.url, formData).pipe(
       tap(response => console.log('Upload response:', response)),
       catchError(this.handleError)
     );
   }
 
-  eliminarImagen(id_imagen: number): Observable<any> {
-    return this.http.post(`${this.url}/borrar_imagen.php`, { id_imagen }).pipe(
-      catchError(this.handleError)
-    );
+  eliminarImagen(id_imagen: number) {
+    let p = JSON.stringify({
+      accion: "BorrarImagen",
+      id_imagen: id_imagen
+    });
+    return this.http.post<Imagen>(this.url, p);
   }
 
-  ValidarImagen(id_imagen: number, estado: string): Observable<any> {
-    return this.http.post(`${this.url}/validar_imagen.php`, { id_imagen, estado }).pipe(
-      catchError(this.handleError)
-    );
+  ValidarImagen(id_imagen: number, estado: string) {
+    let p = JSON.stringify({
+      accion: "ValidarImagen",
+      id_imagen: id_imagen,
+      estado: estado
+    });
+    return this.http.post<Imagen>(this.url, p);
   }
 
   private handleError(error: HttpErrorResponse) {
