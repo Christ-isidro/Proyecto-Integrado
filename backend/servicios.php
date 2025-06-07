@@ -1,27 +1,44 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
-header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: *');
-header("Access-Control-Allow-Origin: *"); // allow request from all origin
 header('Access-Control-Allow-Credentials: true');
-header("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
-header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 require 'vendor/autoload.php';
 require_once 'config.php';
+require_once 'modelos.php';
 
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 
-require_once 'modelos.php';
 $modelo = new Modelo();
 
 // Asegurarse de que el directorio uploads existe
 if (!file_exists('uploads')) {
     mkdir('uploads', 0777, true);
+    // También crear un archivo index.html vacío para prevenir listado de directorios
+    file_put_contents('uploads/index.html', '');
+}
+
+// Si se recibe una petición GET para una imagen
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
+    $imagePath = 'uploads/' . basename($_GET['image']);
+    if (file_exists($imagePath)) {
+        $mime = mime_content_type($imagePath);
+        header('Content-Type: ' . $mime);
+        readfile($imagePath);
+        exit;
+    }
+    http_response_code(404);
+    echo json_encode(['error' => 'Image not found']);
+    exit;
 }
 
 //  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
@@ -35,6 +52,13 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
 
         if ($_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
             throw new Exception('Error al subir el archivo.');
+        }
+
+        // Validar el tipo de archivo
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $fileType = mime_content_type($_FILES['imagen']['tmp_name']);
+        if (!in_array($fileType, $allowedTypes)) {
+            throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
         }
 
         $resultado = $modelo->SubirImagen(
@@ -55,7 +79,7 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
 }
 
 //  Con esta línea recogemos los datos (en formato JSON), enviados por el cliente:
-$datos = file_get_contents('php://input');  //  $datos es un string, y no un objeto php
+$datos = file_get_contents('php://input');
 //  Lo convertimos a un objeto php:
 $objeto = json_decode($datos);
 

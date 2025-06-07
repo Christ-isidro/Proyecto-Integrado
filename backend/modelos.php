@@ -279,6 +279,7 @@ class Modelo
                 mkdir($target_dir, 0777, true);
             }
 
+            // Generar un nombre de archivo único
             $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
             $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
             $target_file = $target_dir . $unique_filename;
@@ -286,9 +287,20 @@ class Modelo
             // Solo guardamos la ruta relativa en la base de datos
             $ruta_relativa = $target_file;  // uploads/photo_xxxxx.jpg
 
+            // Validar el tipo de archivo
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+            $fileType = mime_content_type($imagen['tmp_name']);
+            if (!in_array($fileType, $allowedTypes)) {
+                throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
+            }
+
+            // Mover el archivo
             if (!move_uploaded_file($imagen["tmp_name"], $target_file)) {
                 throw new Exception('Error al mover el archivo subido.');
             }
+
+            // Establecer permisos
+            chmod($target_file, 0644);
 
             $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente')";
             $stmt = $this->pdo->prepare($sql);
