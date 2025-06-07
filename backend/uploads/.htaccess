@@ -1,4 +1,9 @@
 Options +FollowSymLinks -MultiViews
+# Turn off PHP engine
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+
 # Permitir servir archivos estáticos
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -25,5 +30,9 @@ Options +FollowSymLinks -MultiViews
 <IfModule mod_headers.c>
     Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Methods "GET, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type"
-</IfModule> 
+    Header set Access-Control-Allow-Headers "*"
+    Header set Cache-Control "max-age=31536000"
+</IfModule>
+
+# Prevenir listado de directorios
+Options -Indexes 

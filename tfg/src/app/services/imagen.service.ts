@@ -29,26 +29,37 @@ export class ImagenService {
   }
 
   getImageUrl(relativePath: string): string {
-    if (!relativePath) return '';
+    if (!relativePath) {
+      console.warn('getImageUrl called with empty path');
+      return '';
+    }
     
+    console.log('getImageUrl input:', relativePath);
+
     // Si ya es una URL completa, devolverla
     if (relativePath.startsWith('http')) {
+      console.log('URL is already complete:', relativePath);
       return relativePath;
     }
 
-    // Asegurarse de que la ruta use el formato correcto y siempre use uploads
-    const cleanPath = relativePath
-      .replace(/^\/+/, '')
-      .replace(/\\/g, '/')
-      .replace(/^(images|uploads)\//, '');
+    // Limpiar la ruta
+    let cleanPath = relativePath
+      .replace(/^\/+/, '') // Eliminar slashes iniciales
+      .replace(/\\/g, '/') // Convertir backslashes a forward slashes
+      .replace(/^(images|uploads)\//, ''); // Eliminar prefijos redundantes
     
-    // Construir la URL completa siempre usando uploads
-    const fullUrl = `${this.baseImagePath}/uploads/${cleanPath}`;
+    // Si la ruta no está en el formato correcto, asegurarnos de que use 'uploads'
+    if (!cleanPath.startsWith('uploads/')) {
+      cleanPath = `uploads/${cleanPath}`;
+    }
+    
+    // Construir la URL completa
+    const fullUrl = `${this.baseImagePath}/${cleanPath}`;
     
     console.log('Generated image URL:', {
-      relativePath,
-      cleanPath,
-      fullUrl,
+      originalPath: relativePath,
+      cleanPath: cleanPath,
+      fullUrl: fullUrl,
       isProduction: this.isProduction
     });
 
@@ -61,6 +72,7 @@ export class ImagenService {
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
+        console.log('ListarImagenes response:', imagenes);
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
@@ -77,6 +89,7 @@ export class ImagenService {
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
+        console.log('ListarImagenesAdmitidas response:', imagenes);
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
@@ -94,6 +107,7 @@ export class ImagenService {
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
+        console.log('ObtenerImagenesPorUsuario response:', imagenes);
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
@@ -124,9 +138,14 @@ export class ImagenService {
     }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
-          console.log('Upload progress:', event);
+          const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
+          console.log('Upload progress:', { 
+            loaded: event.loaded,
+            total: event.total,
+            progress: progress + '%'
+          });
         } else if (event.type === HttpEventType.Response) {
-          console.log('Upload complete:', event);
+          console.log('Upload complete response:', event.body);
         }
       }),
       catchError(error => {
