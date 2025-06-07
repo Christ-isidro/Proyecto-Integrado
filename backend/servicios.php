@@ -2,7 +2,7 @@
 header("Content-Type: application/json; charset=UTF-8");
 header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Origin: *');
-header('Acces-Control-Allow-Headers: *');
+header('Access-Control-Allow-Headers: *');
 header("Access-Control-Allow-Origin: *"); // allow request from all origin
 header('Access-Control-Allow-Credentials: true');
 header("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
@@ -20,26 +20,36 @@ require_once 'modelos.php';
 $modelo = new Modelo();
 
 // Asegurarse de que el directorio uploads existe
-$uploadsDir = __DIR__ . '/uploads';
-if (!file_exists($uploadsDir)) {
-    mkdir($uploadsDir, 0777, true);
+if (!file_exists('uploads')) {
+    mkdir('uploads', 0777, true);
 }
 
 //  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
 //  se procesa la subida de una imagen.
 if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
-    //  Comprobamos que se ha enviado un archivo y un id de usuario.
-    if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
-        //  Llamamos al método SubirImagen del modelo, pasándole el archivo y el id del usuario.
-        //  El método SubirImagen se encargará de procesar la imagen y guardarla en el servidor.
-        $modelo->SubirImagen(
+    try {
+        //  Comprobamos que se ha enviado un archivo y un id de usuario.
+        if (!isset($_FILES['imagen']) || !isset($_POST['id_usuario'])) {
+            throw new Exception('Datos incompletos.');
+        }
+
+        if ($_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('Error al subir el archivo.');
+        }
+
+        $resultado = $modelo->SubirImagen(
             $_FILES['imagen'],
             $_POST['id_usuario'],
-            titulo: $_POST['titulo']
+            $_POST['titulo']
         );
-    } else {
+
+        echo json_encode($resultado);
+    } catch (Exception $e) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos incompletos.']);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
     }
     exit;
 }
