@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ImagenService } from '../../services/imagen.service';
 import { Imagen } from '../../models/imagen';
 import { CommonModule } from '@angular/common';
-import { UrlService } from '../../services/url.service';
 
 @Component({
   selector: 'app-detalle-usuario',
@@ -22,7 +21,6 @@ export class DetalleUsuarioComponent {
     private router: Router, 
     private ar: ActivatedRoute, 
     private servicioImagen: ImagenService,
-    private urlService: UrlService
   ) {
     let id_usuario = parseInt(this.ar.snapshot.params["id"]);
 
@@ -45,10 +43,6 @@ export class DetalleUsuarioComponent {
         }
       });
     }
-  }
-
-  getImageUrl(ruta: string): string {
-    return this.urlService.getImageUrl(ruta);
   }
 
   volver() {

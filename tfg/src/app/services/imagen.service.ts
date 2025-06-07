@@ -11,24 +11,80 @@ import { catchError, tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ImagenService {
-
   private url = environment.apiUrl;
+  private isProduction = window.location.hostname !== 'localhost';
+
   constructor(
-    private http: HttpClient,
-  ) { }
+    private http: HttpClient
+  ) {
+    console.log('ImagenService initialized with:', {
+      url: this.url,
+      isProduction: this.isProduction,
+      hostname: window.location.hostname
+    });
+  }
+
+  getImageUrl(relativePath: string): string {
+    if (!relativePath) return '';
+    
+    // Si ya es una URL completa, devolverla
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
+
+    // Asegurarse de que la ruta use el formato correcto
+    const cleanPath = relativePath
+      .replace(/^\/+/, '')
+      .replace(/\\/g, '/')
+      .replace(/^(images|uploads)\//, '');
+
+    // Construir la URL completa según el entorno
+    const baseUrl = this.isProduction
+      ? 'https://proyecto-integrado.onrender.com/uploads/'
+      : 'http://localhost/Proyecto%20Integrado/backend/uploads/';
+
+    const fullUrl = baseUrl + cleanPath;
+    
+    console.log('Generated image URL:', {
+      relativePath,
+      cleanPath,
+      fullUrl,
+      isProduction: this.isProduction
+    });
+
+    return fullUrl;
+  }
 
   ListarImagenes() {
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
-    return this.http.post<Imagen[]>(this.url, p);
+    return this.http.post<Imagen[]>(this.url, p).pipe(
+      tap(imagenes => {
+        // Transformar las URLs de las imágenes
+        imagenes.forEach(img => {
+          if (img.ruta) {
+            img.ruta = this.getImageUrl(img.ruta);
+          }
+        });
+      })
+    );
   }
 
   ListarImagenesAdmitidas() {
     let p = JSON.stringify({
       accion: "ListarImagenesAdmitidas"
     });
-    return this.http.post<Imagen[]>(this.url, p);
+    return this.http.post<Imagen[]>(this.url, p).pipe(
+      tap(imagenes => {
+        // Transformar las URLs de las imágenes
+        imagenes.forEach(img => {
+          if (img.ruta) {
+            img.ruta = this.getImageUrl(img.ruta);
+          }
+        });
+      })
+    );
   }
 
   ObtenerImagenesPorUsuario(id_usuario: number) {
@@ -36,7 +92,16 @@ export class ImagenService {
       accion: "ObtenerImagenesPorUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<Imagen[]>(this.url, p);
+    return this.http.post<Imagen[]>(this.url, p).pipe(
+      tap(imagenes => {
+        // Transformar las URLs de las imágenes
+        imagenes.forEach(img => {
+          if (img.ruta) {
+            img.ruta = this.getImageUrl(img.ruta);
+          }
+        });
+      })
+    );
   }
 
   uploadImage(file: File, id_usuario: number, titulo: string): Observable<any> {
@@ -44,11 +109,9 @@ export class ImagenService {
     formData.append('imagen', file);
     formData.append('id_usuario', id_usuario.toString());
     formData.append('titulo', titulo);
+    formData.append('accion', 'SubirImagen');
 
-    const apiUrl = this.url;
-    console.log('Uploading image to:', apiUrl);
-
-    return this.http.post(`${apiUrl}/subir_imagen.php`, formData).pipe(
+    return this.http.post(this.url, formData).pipe(
       tap(response => console.log('Upload response:', response)),
       catchError(this.handleError)
     );

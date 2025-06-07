@@ -16,7 +16,7 @@ export class ParticipanteComponent implements OnInit {
 
   constructor(
     private router: Router, 
-    private imagenServicio: ImagenService,
+    private imagenServicio: ImagenService
   ) { }
 
   ngOnInit(): void {
@@ -38,6 +38,10 @@ export class ParticipanteComponent implements OnInit {
         alert("No se han podido cargar las imágenes");
       }
     });
+  }
+
+  getImageUrl(ruta: string): string {
+    return this.imagenServicio.getImageUrl(ruta);
   }
 
   editarPerfil(id: number): void {

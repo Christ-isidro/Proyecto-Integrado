@@ -79,7 +79,7 @@
                     @for (imagen of imagenesRanking; track $index) {
                     <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
                         <div class="card shadow asia-card w-100">
-                            <img [src]="getImageUrl(imagen.ruta)"
+                            <img [src]="'https://proyecto-integrado.onrender.com/' +imagen.ruta"
                                 class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
                             <div class="card-body text-center">
                                 <span class="fw-bold" style="color:#b23c17;">
