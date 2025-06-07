@@ -269,24 +269,57 @@ class Modelo
 
     public function SubirImagen($imagen, $id_usuario, $titulo)
     {
-        $target_dir = "uploads/";
-        $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
-        $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
-        $target_file = $target_dir . $unique_filename;
-
-        // Solo guardamos la ruta relativa en la base de datos
-        $ruta_relativa = $target_file;  // uploads/photo_xxxxx.jpg
-
-        if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
-            $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta) VALUES (?, ?, ?)";
-            $stmt = $this->pdo->prepare($sql);
-            if ($stmt->execute([$id_usuario, $titulo, $ruta_relativa])) {
-                return ["success" => true, "message" => "Imagen subida correctamente", "ruta" => $ruta_relativa];
-            } else {
-                return ["success" => false, "message" => "Error al guardar en la base de datos"];
+        try {
+            if (!isset($imagen['tmp_name']) || !is_uploaded_file($imagen['tmp_name'])) {
+                throw new Exception('No se ha subido ningún archivo válido.');
             }
-        } else {
-            return ["success" => false, "message" => "Error al subir la imagen"];
+
+            $target_dir = __DIR__ . "/uploads/";
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+
+            $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
+            $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
+            $target_file = $target_dir . $unique_filename;
+            
+            // Solo guardamos la ruta relativa en la base de datos
+            $ruta_relativa = "uploads/" . $unique_filename;
+
+            // Verificar el tipo de archivo
+            $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
+            if (!in_array($imageFileType, $allowed_types)) {
+                throw new Exception('Solo se permiten archivos JPG, JPEG, PNG y GIF.');
+            }
+
+            if (!move_uploaded_file($imagen["tmp_name"], $target_file)) {
+                throw new Exception('Error al mover el archivo subido.');
+            }
+
+            $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente')";
+            $stmt = $this->pdo->prepare($sql);
+            
+            if (!$stmt->execute([$id_usuario, $titulo, $ruta_relativa])) {
+                // Si falla la inserción en la BD, eliminamos el archivo
+                if (file_exists($target_file)) {
+                    unlink($target_file);
+                }
+                throw new Exception('Error al guardar en la base de datos');
+            }
+
+            return [
+                "success" => true, 
+                "message" => "Imagen subida correctamente",
+                "ruta" => $ruta_relativa,
+                "id_imagen" => $this->pdo->lastInsertId()
+            ];
+
+        } catch (Exception $e) {
+            error_log("Error en SubirImagen: " . $e->getMessage());
+            return [
+                "success" => false,
+                "message" => $e->getMessage()
+            ];
         }
     }
 }

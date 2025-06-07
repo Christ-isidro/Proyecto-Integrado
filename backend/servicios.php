@@ -8,7 +8,7 @@ header('Access-Control-Allow-Credentials: true');
 header("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
 header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
-header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
+header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
 
 require 'vendor/autoload.php';
 require_once 'config.php';
@@ -21,22 +21,45 @@ use \Firebase\JWT\Key;
 require_once 'modelos.php';
 $modelo = new Modelo();
 
+// Asegurarse de que el directorio uploads existe
+$uploadsDir = __DIR__ . '/uploads';
+if (!file_exists($uploadsDir)) {
+    mkdir($uploadsDir, 0777, true);
+}
 
 //  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
 //  se procesa la subida de una imagen.
 if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
-    //  Comprobamos que se ha enviado un archivo y un id de usuario.
-    if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
-        //  Llamamos al método SubirImagen del modelo, pasándole el archivo y el id del usuario.
-        //  El método SubirImagen se encargará de procesar la imagen y guardarla en el servidor.
-        $modelo->SubirImagen(
-            $_FILES['imagen'],
-            $_POST['id_usuario'],
-            titulo: $_POST['titulo']
-        );
-    } else {
+    try {
+        //  Comprobamos que se ha enviado un archivo y un id de usuario.
+        if (isset($_FILES['imagen']) && isset($_POST['id_usuario'])) {
+            // Verificar el tipo de archivo
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime_type = finfo_file($finfo, $_FILES['imagen']['tmp_name']);
+            finfo_close($finfo);
+
+            if (strpos($mime_type, 'image/') !== 0) {
+                throw new Exception('El archivo debe ser una imagen.');
+            }
+
+            //  Llamamos al método SubirImagen del modelo
+            $resultado = $modelo->SubirImagen(
+                $_FILES['imagen'],
+                $_POST['id_usuario'],
+                titulo: $_POST['titulo']
+            );
+
+            // Enviamos la respuesta
+            echo json_encode($resultado);
+        } else {
+            throw new Exception('Datos incompletos.');
+        }
+    } catch (Exception $e) {
         http_response_code(400);
-        echo json_encode(['error' => 'Datos incompletos.']);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
     }
     exit;
 }
