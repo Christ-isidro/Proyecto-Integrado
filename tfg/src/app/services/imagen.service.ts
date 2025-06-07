@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, withRequestsMadeViaParent } from '@angular/common/http';
-import { environment } from '../../environments/environment.development';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { Imagen } from '../models/imagen';
 import { JsonPipe } from '@angular/common';
 import { Usuario } from '../models/usuario';
@@ -9,7 +9,8 @@ import { Usuario } from '../models/usuario';
   providedIn: 'root'
 })
 export class ImagenService {
-  private url: string = environment.url
+  private url: string = environment.url;
+  
   constructor(private http: HttpClient) { }
 
   ListarImagenes() {
@@ -40,7 +41,11 @@ export class ImagenService {
     formData.append('id_usuario', id_usuario.toString());
     formData.append('titulo', titulo);
     formData.append('accion', 'SubirImagen');
-    return this.http.post(this.url, formData)
+    
+    return this.http.post(this.url, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
   }
 
   eliminarImagen(id_imagen: number) {
@@ -59,6 +64,4 @@ export class ImagenService {
     });
     return this.http.post<Imagen>(this.url, p);
   }
-
-
 }
