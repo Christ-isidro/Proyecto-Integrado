@@ -17,39 +17,41 @@
                 Subir Imagen de Asia
             </h3>
             <form [formGroup]="form" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="titulo" class="form-label">Título de la imagen</label>
+                <div class="form-group">
+                    <label for="titulo">Título de la imagen</label>
                     <input type="text" id="titulo" formControlName="titulo" class="form-control" required>
-                    <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="alert alert-danger mt-2">
-                        El título es obligatorio y debe tener entre 3 y 50 caracteres
+                    <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="alert alert-danger">
+                        El título es requerido
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="imagen" class="form-label">Seleccionar imagen</label>
+                <div class="form-group">
+                    <label for="imagen">Seleccionar imagen</label>
                     <input type="file" id="imagen" (change)="onFileSelected($event)" class="form-control" accept="image/*" required>
-                    <div *ngIf="form.get('imagen')?.invalid && form.get('imagen')?.touched" class="alert alert-danger mt-2">
+                    <div *ngIf="form.get('imagen')?.invalid && form.get('imagen')?.touched" class="alert alert-danger">
                         La imagen es requerida
                     </div>
                 </div>
 
                 <!-- Preview de la imagen -->
-                <div *ngIf="previewUrl" class="preview-container mb-3">
-                    <img [src]="previewUrl" alt="Preview" class="img-preview img-fluid rounded">
+                <div *ngIf="previewUrl" class="preview-container">
+                    <img [src]="previewUrl" alt="Preview" class="img-preview">
                 </div>
 
                 <!-- Barra de progreso -->
-                <div *ngIf="isUploading" class="progress mb-3">
+                <div *ngIf="isUploading" class="progress mt-3">
                     <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress">
                         {{uploadProgress}}%
                     </div>
                 </div>
 
-                <!-- Mensajes de error y éxito -->
-                <div *ngIf="uploadError" class="alert alert-danger mb-3">
+                <!-- Mensajes de error -->
+                <div *ngIf="uploadError" class="alert alert-danger mt-3">
                     {{uploadError}}
                 </div>
-                <div *ngIf="uploadSuccess" class="alert alert-success mb-3">
+
+                <!-- Mensaje de éxito -->
+                <div *ngIf="uploadSuccess" class="alert alert-success mt-3">
                     ¡Imagen subida correctamente! Redirigiendo...
                 </div>
 

@@ -115,12 +115,16 @@ export class ImagenService {
       id_usuario,
       titulo,
       fileName: file.name,
-      fileSize: file.size
+      fileSize: file.size,
+      url: `${this.url}/servicios.php`
     });
 
     return this.http.post(`${this.url}/servicios.php`, formData, {
       reportProgress: true,
-      observe: 'events'
+      observe: 'events',
+      headers: {
+        'Accept': 'application/json'
+      }
     }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {

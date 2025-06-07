@@ -1,22 +1,20 @@
 <?php
-header("Content-Type: application/json; charset=UTF-8");
-header('Access-Control-Allow-Methods: GET, POST');
-header('Access-Control-Allow-Origin: *');
-header('Acces-Control-Allow-Headers: *');
-header("Access-Control-Allow-Origin: *"); // allow request from all origin
-header('Access-Control-Allow-Credentials: true');
-header("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
-header("Access-Control-Allow-Headers: Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization");
+header('Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json; charset=UTF-8');
 
-header('Content-Type: application/json');  //  Todo se devolverá en formato JSON.
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 require 'vendor/autoload.php';
 require_once 'config.php';
 
-
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
-
 
 require_once 'modelos.php';
 $modelo = new Modelo();
@@ -71,7 +69,6 @@ $objeto = json_decode($datos);
 
 if ($objeto != null) {
     switch ($objeto->accion) {
-
         //Listar
         case 'ListarUsuarios':
             print json_encode($modelo->ListarUsuarios());
@@ -92,7 +89,6 @@ if ($objeto != null) {
         case 'ObtenerImagenesPorUsuario':
             print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
             break;
-
 
         //Insertar
         case 'InsertarUsuario':
