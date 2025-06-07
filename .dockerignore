@@ -5,3 +5,4 @@ vendor/
 node_modules/
 README.md
 *.log 
+DATABASE_URL=postgres://neondb_owner:npg_h3HgPyqM0kse@ep-withered-pond-a9sxaz90-pooler.gwc.azure.neon.tech/neondb?sslmode=require 
