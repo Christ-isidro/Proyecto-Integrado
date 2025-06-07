@@ -10,35 +10,41 @@
 </head>
 
 <body>
-    <div class="container d-flex flex-column align-items-center justify-content-center"
-        style="min-height: 80vh; max-width: 400px;">
-        <h2 class="mb-4 fw-bold text-center">Iniciar Sesión</h2>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-100">
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" formControlName="email" required>
-                @if (form.controls["email"].invalid && (form.controls["email"].dirty || form.controls["email"].touched))
-                {
-                <div class="alert alert-danger mt-2">El email es obligatorio</div>
-                }
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Contraseña</label>
-                <input type="password" class="form-control" formControlName="password" required>
-                @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
-                form.controls["password"].touched)) {
-                <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
-                }
-            </div>
-            <div class="d-flex justify-content-between">
-                <button class="btn btn-danger" type="button" (click)="volver()">
-                    <i class="bi bi-arrow-left"></i> Volver
-                </button>
-                <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-                </button>
-            </div>
-        </form>
+
+    <div class="asia-bg d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.97); max-width: 400px;">
+            <h2 class="mb-4 fw-bold text-center asia-title">
+                <span class="asia-icon me-2">🔑</span>
+                Iniciar Sesión en el Rally de Asia
+            </h2>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-100">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" formControlName="email" required>
+                    @if (form.controls["email"].invalid && (form.controls["email"].dirty ||
+                    form.controls["email"].touched))
+                    {
+                    <div class="alert alert-danger mt-2">El email es obligatorio</div>
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" formControlName="password" required>
+                    @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
+                    form.controls["password"].touched)) {
+                    <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
+                    }
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-danger" type="button" (click)="volver()">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 

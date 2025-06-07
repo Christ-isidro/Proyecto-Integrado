@@ -6,57 +6,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>\
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand bg-white shadow-sm mb-4" style="border-radius: 0.5rem;">
-        <div class="container-fluid d-flex justify-content-between">
-            <button class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center"
-                style="width: 48px; height: 48px; font-size: 1.5rem;" (click)="volverLogin()" title="Volver al inicio">
-                <i class="bi bi-house-door"></i>
-            </button>
-            <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-                style="width: 48px; height: 48px; font-size: 1.5rem;" (click)="miPerfil()" title="Ir a mi perfil">
-                <i class="bi bi-person-circle"></i>
-            </button>
-        </div>
-    </nav>
+    <div class="asia-bg min-vh-100 d-flex flex-column">
+        <!-- Menú superior temático -->
+        <nav class="navbar navbar-expand shadow-sm mb-4 asia-navbar" style="border-radius: 0 0 1rem 1rem;">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <button
+                    class="btn btn-outline-light rounded-circle d-flex align-items-center justify-content-center asia-btn"
+                    style="width: 48px; height: 48px; font-size: 1.5rem; border: 2px solid #f8b500;"
+                    (click)="volverLogin()" title="Volver al inicio">
+                    <span style="font-size:1.5rem;">🏠</span>
+                </button>
+                <span class="asia-title-navbar fw-bold text-center flex-grow-1">
+                    <span class="asia-icon-navbar me-2">🌸</span>
+                    Rally Fotográfico Asia
+                    <span class="asia-icon-navbar ms-2">🏯</span>
+                </span>
+                <button class="btn btn-light rounded-circle d-flex align-items-center justify-content-center asia-btn"
+                    style="width: 48px; height: 48px; font-size: 1.5rem; border: 2px solid #b23c17;"
+                    (click)="miPerfil()" title="Ir a mi perfil">
+                    <span style="font-size:1.5rem; color:#b23c17;">👤</span>
+                </button>
+            </div>
+        </nav>
 
-    <div class="container d-flex flex-column align-items-center mt-4">
-        <h3 class="fw-bold mb-4">Bienvenido al Rally Fotográfico</h3>
-        <div class="mb-3 d-flex gap-2">
-            <p class="lead">
-                ¡Participa en nuestro Rally Fotográfico! Este concurso invita a todos los amantes de la fotografía a
-                capturar los mejores momentos y paisajes de nuestra ciudad.
-                Sube tus imágenes, compite por ser una de las fotos admitidas y comparte tu visión con la comunidad.
-                Las mejores imágenes serán seleccionadas por el jurado y podrán optar a premios especiales.
-                ¡No pierdas la oportunidad de mostrar tu talento y disfrutar de la fotografía!
-            </p>
-        </div>
-    </div>
-
-    <div class="container mt-4">
-        <h4 class="fw-bold text-center">Vota tu imagen favorita</h4>
-        <div class="row justify-content-center">
-            @for (imagen of imagenesAdmitidas; track $index) {
-            <div class="col-md-4 mb-3">
-                <div class="card shadow">
-                    <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" class="card-img-top"
-                        alt="Imagen de {{ imagen.nombre_usuario }}">
-                    <div class="card-body text-center">
-                        <span style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
-                            Subida por: {{ imagen.nombre_usuario }}
-                        </span>
-                        <br>
-                        <button class="btn btn-success mt-4 w-100" [disabled]="yaVotada(imagen.id_imagen)"
-                            (click)="votarImagen(imagen.id_imagen)">
-                            {{ yaVotada(imagen.id_imagen) ? 'Ya votaste' : 'Dar voto' }} <i class="bi bi-shift"></i>
-                        </button>
+        <!-- Contenido principal -->
+        <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+            <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.95); max-width: 900px;">
+                <h2 class="fw-bold mb-3 asia-title text-center">
+                    <span class="asia-icon me-2">🌸</span>
+                    Bienvenido al Rally Fotográfico: Lugares de Asia
+                    <span class="asia-icon ms-2">🏯</span>
+                </h2>
+                <div class="mb-3 d-flex gap-2 justify-content-center">
+                    <p class="lead text-center mb-0">
+                        ¡Participa en nuestro Rally Fotográfico dedicado a los lugares más impresionantes de Asia!<br>
+                        Sube tus imágenes de rincones asiáticos, compite por ser una de las fotos admitidas y comparte
+                        tu visión con la comunidad.<br>
+                        Las mejores imágenes serán seleccionadas por el jurado y podrán optar a premios especiales.<br>
+                        ¡No pierdas la oportunidad de mostrar tu talento y descubrir Asia a través de la fotografía!
+                    </p>
+                </div>
+                <h4 class="fw-bold text-center mt-4" style="font-size:1.35rem;">Vota tu imagen favorita de Asia</h4>
+                <div class="row justify-content-center">
+                    @for (imagen of imagenesAdmitidas; track $index) {
+                    <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
+                        <div class="card shadow asia-card w-100">
+                            <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                                class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
+                            <div class="card-body text-center">
+                                <div class="mb-2 fw-semibold" style="color:#b23c17;">
+                                    Subida por: {{ imagen.nombre_usuario }}
+                                </div>
+                                <div class="mb-2">
+                                    <span class="fw-bold">Título:</span> {{ imagen.titulo }}
+                                </div>
+                                <button class="btn btn-success mt-3 w-100" [disabled]="yaVotada(imagen.id_imagen)"
+                                    (click)="votarImagen(imagen.id_imagen)">
+                                    {{ yaVotada(imagen.id_imagen) ? 'Ya votaste' : 'Dar voto' }} <i
+                                        class="bi bi-shift"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    }
                 </div>
             </div>
-            }
+            <!-- Ranking de imágenes más votadas -->
+            <div class="container rounded shadow-lg p-4 mt-5"
+                style="background: rgba(255,255,255,0.95); max-width: 900px;">
+                <h3 class="fw-bold mb-4 asia-title text-center">
+                    <span class="asia-icon me-2">🏆</span>
+                    Ranking: Imágenes más votadas
+                    <span class="asia-icon ms-2">📸</span>
+                </h3>
+                <div class="row justify-content-center">
+                    @if (imagenesRanking.length > 0) {
+                    @for (imagen of imagenesRanking; track $index) {
+                    <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
+                        <div class="card shadow asia-card w-100">
+                            <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                                class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
+                            <div class="card-body text-center">
+                                <span class="fw-bold" style="color:#b23c17;">
+                                    #{{ $index + 1 }} - {{ imagen.titulo }}
+                                </span>
+                                <div>
+                                    <span style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
+                                        Subida por: {{ imagen.nombre_usuario }}
+                                    </span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge bg-warning text-dark" style="font-size:1.1rem;">
+                                        <i class="bi bi-star-fill"></i> {{ imagen.votos }} votos
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                    } @else {
+                    <div class="alert alert-info text-center">Aún no hay imágenes votadas.</div>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </body>

@@ -10,51 +10,57 @@
 </head>
 
 <body>
-    <div class="container mt-5" style="max-width: 500px;">
-        <h4 class="mb-4 fw-bold text-center">Editar usuario</h4>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="mb-3">
-                <label class="form-label">Nombre:</label>
-                <input type="text" class="form-control" required formControlName="nombre">
-                @if (form.controls["nombre"].invalid && (form.controls["nombre"].dirty ||
-                form.controls["nombre"].touched)) {
-                @if (form.controls["nombre"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">El nombre es obligatorio</div>
-                }
-                }
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Correo electrónico:</label>
-                <input type="email" class="form-control" required formControlName="email">
-                @if (form.controls["email"].invalid && (form.controls["email"].dirty || form.controls["email"].touched))
-                {
-                @if (form.controls["email"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">El email es obligatorio</div>
-                }
-                }
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Nueva contraseña:</label>
-                <input type="password" class="form-control" required formControlName="password">
-                @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
-                form.controls["password"].touched)) {
-                @if (form.controls["password"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
-                }
-                @if (form.controls["password"].errors?.["minlength"]) {
-                <div class="alert alert-danger mt-2">La contraseña debe tener 6 caracteres</div>
-                }
-                }
-            </div>
-            <div class="d-flex justify-content-between">
-                <button class="btn btn-danger" routerLink="/perfil" type="button">
-                    Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary" [disabled]="!form.valid">
-                    Guardar cambios
-                </button>
-            </div>
-        </form>
+    <div class="asia-bg d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.97); max-width: 400px;">
+            <h2 class="mb-4 fw-bold text-center asia-title">
+                <span class="asia-icon me-2">🔑</span>
+                Iniciar Sesión en el Rally de Asia
+            </h2>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="mb-3">
+                    <label class="form-label">Nombre:</label>
+                    <input type="text" class="form-control" required formControlName="nombre">
+                    @if (form.controls["nombre"].invalid && (form.controls["nombre"].dirty ||
+                    form.controls["nombre"].touched)) {
+                    @if (form.controls["nombre"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">El nombre es obligatorio</div>
+                    }
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Correo electrónico:</label>
+                    <input type="email" class="form-control" required formControlName="email">
+                    @if (form.controls["email"].invalid && (form.controls["email"].dirty ||
+                    form.controls["email"].touched))
+                    {
+                    @if (form.controls["email"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">El email es obligatorio</div>
+                    }
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nueva contraseña:</label>
+                    <input type="password" class="form-control" required formControlName="password">
+                    @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
+                    form.controls["password"].touched)) {
+                    @if (form.controls["password"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
+                    }
+                    @if (form.controls["password"].errors?.["minlength"]) {
+                    <div class="alert alert-danger mt-2">La contraseña debe tener 6 caracteres</div>
+                    }
+                    }
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-danger" routerLink="/perfil" type="button">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="!form.valid">
+                        Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 

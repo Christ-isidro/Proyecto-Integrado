@@ -10,50 +10,56 @@
 </head>
 
 <body>
-    <div class="container d-flex flex-column align-items-center mt-4">
-        <h3 class="fw-bold mb-4">Perfil de {{ usuario.nombre }}</h3>
-        <div class="mb-3 d-flex gap-2">
-            <button class="btn btn-secondary" routerLink="/inicio">
-                <i class="bi bi-arrow-left"></i> Volver
-            </button>
-            <button class="btn btn-primary" (click)="irAEditarPerfil()">
-                <i class="bi bi-pencil"></i> Editar perfil
-            </button>
-            <button class="btn btn-danger" (click)="cerrarSesion()">
-                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-            </button>
+    <div class="asia-bg py-5">
+        <div class="container d-flex flex-column align-items-center mt-4">
+            <h3 class="fw-bold mb-4 asia-title text-center">
+                <span class="asia-icon me-2">👤</span>
+                Perfil de {{ usuario.nombre }}
+            </h3>
+            <div class="mb-3 d-flex gap-2">
+                <button class="btn btn-secondary" routerLink="/inicio">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </button>
+                <button class="btn btn-primary" (click)="irAEditarPerfil()">
+                    <i class="bi bi-pencil"></i> Editar perfil
+                </button>
+                <button class="btn btn-danger" (click)="cerrarSesion()">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </button>
+            </div>
         </div>
-    </div>
 
-    <div class="container mt-4">
-        <h4 class="fw-bold text-center">Mis imágenes</h4>
-        <div class="d-flex justify-content-center">
-            <button class="btn btn-primary mt-3 mb-3" (click)="subirImagen(usuario.id)">
-                <i class="bi bi-cloud-upload"></i> Subir imagen
-            </button>
-        </div>
-        <div class="row justify-content-center">
-            @for (imagen of imagenes; track $index) {
-            <div class="col-md-4 mb-3">
-                <div class="card shadow">
-                    <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" class="card-img-top"
-                        alt="Imagen de {{ usuario.nombre }}">
-                    <div class="card-body text-center">
-                        <span [class.bg-warning]="imagen.estado === 'pendiente'"
-                            [class.text-dark]="imagen.estado === 'pendiente'"
-                            [class.bg-success]="imagen.estado === 'admitido'"
-                            [class.bg-danger]="imagen.estado === 'rechazado'"
-                            style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
-                            Estado: {{ imagen.estado }}
-                        </span>
-                        <br>
-                        <button class="btn btn-danger mt-4 w-100" (click)="eliminarImagen(imagen.id_imagen)">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
+        <div class="container mt-4">
+            <h4 class="fw-bold text-center">Mis imágenes de Asia</h4>
+            <div class="d-flex justify-content-center">
+                <button class="btn btn-primary mt-3 mb-3" (click)="subirImagen(usuario.id)">
+                    <i class="bi bi-cloud-upload"></i> Subir imagen
+                </button>
+            </div>
+            <div class="row justify-content-center">
+                @for (imagen of imagenes; track $index) {
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow asia-card">
+                        <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                            class="card-img-top asia-img" alt="Imagen de {{ usuario.nombre }}">
+                        <div class="card-body text-center">
+                            <h5 class="card-title fw-bold">{{ imagen.titulo }}</h5>
+                            <span [class.bg-warning]="imagen.estado === 'pendiente'"
+                                [class.text-dark]="imagen.estado === 'pendiente'"
+                                [class.bg-success]="imagen.estado === 'admitido'"
+                                [class.bg-danger]="imagen.estado === 'rechazado'"
+                                style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
+                                Estado: {{ imagen.estado }}
+                            </span>
+                            <br>
+                            <button class="btn btn-danger mt-4 w-100" (click)="eliminarImagen(imagen.id_imagen)">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </div>
                     </div>
                 </div>
+                }
             </div>
-            }
         </div>
     </div>
 </body>

@@ -14,11 +14,28 @@ class Modelo
     public function __CONSTRUCT()
     {
         try {
-            $opciones = array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8");
-            $this->pdo = new PDO('mysql:host=localhost;dbname=rally_tfg', 'root', '', $opciones);
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $opciones = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION);
+            
+            // Check if PDO PostgreSQL driver is available
+            if (!in_array('pgsql', PDO::getAvailableDrivers())) {
+                throw new Exception('PostgreSQL PDO driver is not installed');
+            }
+            
+            $this->pdo = new PDO(
+                'pgsql:host=ep-withered-pond-a9sxaz90-pooler.gwc.azure.neon.tech;port=5432;dbname=neondb;sslmode=require',
+                'neondb_owner',
+                'npg_h3HgPyqM0kse',
+                $opciones
+            );
         } catch (Exception $e) {
-            die($e->getMessage());
+            // Return proper JSON error response
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+            exit;
         }
     }
 
@@ -237,7 +254,7 @@ class Modelo
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-    public function SubirImagen($file, $id_usuario)
+    public function SubirImagen($file, $id_usuario, $titulo)
     {
         global $uploadDir;
 
@@ -257,8 +274,8 @@ class Modelo
         }
 
         try {
-            $stmt = $this->pdo->prepare("INSERT INTO imagenes (ruta, id_usuario, estado) VALUES (?, ?, ?)");
-            $stmt->execute([$relativePath, $id_usuario, 'pendiente']);
+            $stmt = $this->pdo->prepare("INSERT INTO imagenes (ruta, id_usuario, titulo, estado) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$relativePath, $id_usuario, $titulo, 'pendiente']);
             if ($stmt->rowCount() === 0) {
                 http_response_code(500);
                 echo json_encode(['success' => false, 'message' => 'Error al insertar en la base de datos.']);

@@ -34,10 +34,11 @@ export class ImagenService {
     return this.http.post<Imagen[]>(this.url, p);
   }
 
-  SubirImagen(file: File, id_usuario: number) {
+  SubirImagen(file: File, id_usuario: number, titulo: string) {
     const formData = new FormData();
     formData.append('imagen', file);
     formData.append('id_usuario', id_usuario.toString());
+    formData.append('titulo', titulo);
     formData.append('accion', 'SubirImagen');
     return this.http.post(this.url, formData)
   }

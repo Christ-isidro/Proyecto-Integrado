@@ -10,50 +10,56 @@
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center mb-4 fw-bold">Usuarios</h2>
-        <table class="table table-bordered table-hover shadow">
-            <thead class="table-primary">
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Password</th>
-                    <th>Rol</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (usuario of usuarios; track $index) {
-                <tr>
-                    <td>{{ usuario.id }}</td>
-                    <td>
-                        <a routerLink="usuario/{{usuario.id}}" class="fw-bold text-decoration-none">
-                            {{ usuario.nombre }}
-                        </a>
-                    </td>
-                    <td>{{ usuario.email }}</td>
-                    <td>{{ usuario.password }}</td>
-                    <td>{{ usuario.rol }}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm me-2" (click)="editarUsuario(usuario)">
-                            <i class="bi bi-pencil"></i> Editar
-                        </button>
-                        <button class="btn btn-danger btn-sm" (click)="eliminarUsuario(usuario.id, usuario.nombre)">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
-                    </td>
-                </tr>
-                }
-            </tbody>
-        </table>
-        <div class="d-flex justify-content-between mt-4">
-            <button class="btn btn-secondary" routerLink="/admin">
-                <i class="bi bi-arrow-left"></i> Volver
-            </button>
-            <button class="btn btn-primary" type="button" (click)="nuevoUsuario()">
-                <i class="bi bi-person-plus"></i> Nuevo Usuario
-            </button>
+
+    <div class="asia-bg py-5">
+        <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.97);">
+            <h2 class="text-center mb-4 fw-bold asia-title">
+                <span class="asia-icon me-2">👥</span>
+                Usuarios
+            </h2>
+            <table class="table table-bordered table-hover shadow">
+                <thead class="table-primary">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Password</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (usuario of usuarios; track $index) {
+                    <tr>
+                        <td>{{ usuario.id }}</td>
+                        <td>
+                            <a routerLink="usuario/{{usuario.id}}" class="fw-bold text-decoration-none">
+                                {{ usuario.nombre }}
+                            </a>
+                        </td>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.password }}</td>
+                        <td>{{ usuario.rol }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-2" (click)="editarUsuario(usuario)">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm" (click)="eliminarUsuario(usuario.id, usuario.nombre)">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-secondary" routerLink="/admin">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </button>
+                <button class="btn btn-primary" type="button" (click)="nuevoUsuario()">
+                    <i class="bi bi-person-plus"></i> Nuevo Usuario
+                </button>
+            </div>
         </div>
     </div>
 </body>

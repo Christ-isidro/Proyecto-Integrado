@@ -9,38 +9,49 @@
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center mb-4 fw-bold">Lista de imágenes</h2>
-        <div class="row justify-content-center">
-            @for (imagen of imagenes; track $index) {
-            <div class="col-md-4 mb-4 d-flex align-items-stretch">
-                <div class="card shadow w-100">
-                    <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" class="card-img-top"
-                        style="height: 250px; object-fit: cover;">
-                    <div class="card-body text-center">
-                        <div class="mb-2">
-                            <strong>Usuario:</strong> {{ imagen.nombre_usuario }}
+    <div class="asia-bg py-5">
+        <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.95);">
+            <h2 class="text-center mb-4 fw-bold asia-title">
+                <span class="asia-icon me-2">🌸</span>
+                Galería de Imágenes: Lugares de Asia
+                <span class="asia-icon ms-2">🏯</span>
+            </h2>
+            <div class="row justify-content-center">
+                @for (imagen of imagenes; track $index) {
+                <div class="col-md-4 mb-4 d-flex align-items-stretch">
+                    <div class="card shadow w-100 border-0 asia-card">
+                        <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta"
+                            class="card-img-top asia-img" alt="Imagen de {{ imagen.nombre_usuario }}">
+                        <div class="card-body text-center">
+                            <div class="mb-2">
+                                <strong class="text-primary">Usuario:</strong> {{ imagen.nombre_usuario }}
+                            </div>
+                            <h5 class="card-title fw-bold">{{ imagen.titulo }}</h5>
+                            <span [class.bg-warning]="imagen.estado === 'pendiente'"
+                                [class.text-dark]="imagen.estado === 'pendiente'"
+                                [class.bg-success]="imagen.estado === 'admitido'"
+                                [class.bg-danger]="imagen.estado === 'rechazado'"
+                                style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
+                                Estado: {{ imagen.estado }}
+                            </span>
+                            <br>
+                            <button class="btn btn-outline-success mt-4 w-100" (click)="validar(imagen.id_imagen)">
+                                <i class="bi bi-check-circle"></i> Validar
+                            </button>
+                            <button class="btn btn-outline-danger mt-2 w-100"
+                                (click)="eliminarImagen(imagen.id_imagen)">
+                                <i class="bi bi-x-circle"></i> Eliminar
+                            </button>
                         </div>
-                        <span [class.bg-warning]="imagen.estado === 'pendiente'"
-                            [class.text-dark]="imagen.estado === 'pendiente'"
-                            [class.bg-success]="imagen.estado === 'admitido'"
-                            [class.bg-danger]="imagen.estado === 'rechazado'"
-                            style="display: inline-block; padding: 0.25em 0.6em; border-radius: 0.25rem;">
-                            Estado: {{ imagen.estado }}
-                        </span>
-                        <br>
-                        <button class="btn btn-primary mt-4 w-100" (click)="validar(imagen.id_imagen)">
-                            <i class="bi bi-check-circle"></i> Validar
-                        </button>
                     </div>
                 </div>
+                }
             </div>
-            }
-        </div>
-        <div class="text-center mt-4">
-            <button class="btn btn-secondary" routerLink="/admin">
-                <i class="bi bi-arrow-left"></i> Volver
-            </button>
+            <div class="text-center mt-4">
+                <button class="btn btn-secondary" routerLink="/admin">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </button>
+            </div>
         </div>
     </div>
 </body>

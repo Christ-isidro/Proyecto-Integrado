@@ -6,3 +6,77 @@
     aspect-ratio: 16/9;
     /* Mantiene formato horizontal */
 }
+
+.asia-bg {
+    background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80');
+    background-blend-mode: multiply;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+.asia-title,
+.asia-title-navbar {
+    font-family: 'Noto Serif JP', serif;
+    color: #b23c17;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 4px #f8b50055;
+}
+
+.asia-icon,
+.asia-icon-navbar {
+    font-size: 2rem;
+    vertical-align: middle;
+}
+
+.asia-navbar {
+    background: rgba(255, 248, 225, 0.92);
+    border-bottom: 2px solid #f8b500;
+    box-shadow: 0 2px 8px #f8b50033;
+}
+
+.asia-btn {
+    background: rgba(255, 255, 255, 0.7);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.asia-btn:hover {
+    background: #f8b500;
+    box-shadow: 0 0 10px #f8b50055;
+}
+
+.asia-card {
+    border-radius: 1.5rem;
+    border: 2px solid #f8b500;
+    background: #fff8e1;
+    transition: transform 0.2s;
+}
+
+.asia-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px #f8b50055;
+}
+
+.asia-img {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    height: 250px;
+    object-fit: cover;
+    border-bottom: 2px solid #f8b500;
+}
+
+.asia-img-grande {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    width: 100%;
+    aspect-ratio: 16/7;
+    object-fit: cover;
+    border-bottom: 2px solid #f8b500;
+    box-shadow: 0 4px 16px #f8b50033;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .asia-img-grande {
+        aspect-ratio: 16/10;
+    }
+}

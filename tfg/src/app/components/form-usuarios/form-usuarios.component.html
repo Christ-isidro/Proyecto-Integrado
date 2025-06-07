@@ -10,64 +10,71 @@
 </head>
 
 <body>
-    <div class="container mt-5" style="max-width: 500px;">
-        <h3 class="mb-4 fw-bold text-center">{{ textoBoton }} Usuario</h3>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="mb-3">
-                <label class="form-label">Nombre:</label>
-                <input type="text" class="form-control" required formControlName="nombre">
-                @if (form.controls["nombre"].invalid && (form.controls["nombre"].dirty ||
-                form.controls["nombre"].touched)) {
-                @if (form.controls["nombre"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">El nombre es obligatorio</div>
-                }
-                }
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Correo electrónico:</label>
-                <input type="email" class="form-control" required formControlName="email">
-                @if (form.controls["email"].invalid && (form.controls["email"].dirty || form.controls["email"].touched))
-                {
-                @if (form.controls["email"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">El email es obligatorio</div>
-                }
-                }
-            </div>
-            <div class="mb-3">
-                <label class="form-label">{{ textoPassword }}:</label>
-                <input type="password" class="form-control" required formControlName="password">
-                @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
-                form.controls["password"].touched)) {
-                @if (form.controls["password"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
-                }
-                @if (form.controls["password"].errors?.["minlength"]) {
-                <div class="alert alert-danger mt-2">La contraseña debe tener 6 caracteres</div>
-                }
-                }
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Rol:</label>
-                <select class="form-select" required formControlName="rol">
-                    <option value="" disabled selected>Selecciona un rol</option>
-                    <option value="participante">Participante</option>
-                    <option value="administrador">Administrador</option>
-                </select>
-                @if (form.controls["rol"].invalid && (form.controls["rol"].dirty || form.controls["rol"].touched)) {
-                @if (form.controls["rol"].errors?.["required"]) {
-                <div class="alert alert-danger mt-2">Elija el rol del usuario</div>
-                }
-                }
-            </div>
-            <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary" [disabled]="!form.valid">
-                    {{ textoBoton }}
-                </button>
-                <button class="btn btn-danger" routerLink="/usuarios" type="button">
-                    Cancelar
-                </button>
-            </div>
-        </form>
+
+    <div class="asia-bg d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.97); max-width: 400px;">
+            <h2 class="mb-4 fw-bold text-center asia-title">
+                <span class="asia-icon me-2">🔑</span>
+                Iniciar Sesión en el Rally de Asia
+            </h2>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="mb-3">
+                    <label class="form-label">Nombre:</label>
+                    <input type="text" class="form-control" required formControlName="nombre">
+                    @if (form.controls["nombre"].invalid && (form.controls["nombre"].dirty ||
+                    form.controls["nombre"].touched)) {
+                    @if (form.controls["nombre"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">El nombre es obligatorio</div>
+                    }
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Correo electrónico:</label>
+                    <input type="email" class="form-control" required formControlName="email">
+                    @if (form.controls["email"].invalid && (form.controls["email"].dirty ||
+                    form.controls["email"].touched))
+                    {
+                    @if (form.controls["email"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">El email es obligatorio</div>
+                    }
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ textoPassword }}:</label>
+                    <input type="password" class="form-control" required formControlName="password">
+                    @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
+                    form.controls["password"].touched)) {
+                    @if (form.controls["password"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
+                    }
+                    @if (form.controls["password"].errors?.["minlength"]) {
+                    <div class="alert alert-danger mt-2">La contraseña debe tener 6 caracteres</div>
+                    }
+                    }
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Rol:</label>
+                    <select class="form-select" required formControlName="rol">
+                        <option value="" disabled selected>Selecciona un rol</option>
+                        <option value="participante">Participante</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                    @if (form.controls["rol"].invalid && (form.controls["rol"].dirty || form.controls["rol"].touched)) {
+                    @if (form.controls["rol"].errors?.["required"]) {
+                    <div class="alert alert-danger mt-2">Elija el rol del usuario</div>
+                    }
+                    }
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary" [disabled]="!form.valid">
+                        {{ textoBoton }}
+                    </button>
+                    <button class="btn btn-danger" routerLink="/usuarios" type="button">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 

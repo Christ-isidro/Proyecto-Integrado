@@ -31,7 +31,8 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
         //  El método SubirImagen se encargará de procesar la imagen y guardarla en el servidor.
         $modelo->SubirImagen(
             $_FILES['imagen'],
-            $_POST['id_usuario']
+            $_POST['id_usuario'],
+            titulo: $_POST['titulo']
         );
     } else {
         http_response_code(400);

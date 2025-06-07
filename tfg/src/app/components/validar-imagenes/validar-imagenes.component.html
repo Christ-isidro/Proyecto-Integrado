@@ -10,38 +10,45 @@
 </head>
 
 <body>
-    <div class="container mt-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 70vh;">
-        <h3 class="mb-4">Validar Imagen</h3>
-        <div class="card shadow" style="max-width: 600px; width: 100%;">
-            <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" alt="Imagen a validar"
-                class="img-fluid rounded" style="max-height: 400px; object-fit: contain; margin: auto; display: block;">
-            <div class="card-body text-center">
-                <p><strong>Usuario:</strong> {{ imagen.nombre_usuario }}</p>
-                <form [formGroup]="form" (ngSubmit)="onSubmit()">
-                    <div class="mb-3">
-                        <label for="estado" class="form-label">Estado:</label>
-                        <select id="estado" class="form-select" formControlName="estado" required>
-                            <option value="" disabled>Selecciona un estado</option>
-                            <option value="admitido">Admitir</option>
-                            <option value="rechazado">Rechazar</option>
-                            <option value="pendiente">Pendiente</option>
-                        </select>
-                        @if (form.controls['estado'].invalid && (form.controls['estado'].dirty ||
-                        form.controls['estado'].touched)) {
-                        @if (form.controls['estado'].errors?.['required']) {
-                        <div class="alert alert-danger mt-2">El estado es obligatorio</div>
-                        }
-                        }
-                    </div>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-secondary" type="button" routerLink="/imagenes">
-                            <i class="bi bi-arrow-left"></i> Volver
-                        </button>
-                        <button class="btn btn-success" type="submit" [disabled]="form.invalid">
-                            <i class="bi bi-check-circle"></i> Guardar
-                        </button>
-                    </div>
-                </form>
+
+    <div class="asia-bg py-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="container rounded shadow-lg p-4" style="background: rgba(255,255,255,0.97); max-width: 600px;">
+            <h3 class="mb-4 asia-title text-center">
+                <span class="asia-icon me-2">🖼️</span>
+                Validar Imagen de Asia
+            </h3>
+            <div class="card shadow" style="max-width: 600px; width: 100%;">
+                <img [src]="'http://localhost/Proyecto%20Integrado/backend/' + imagen.ruta" alt="Imagen a validar"
+                    class="img-fluid rounded asia-img"
+                    style="max-height: 400px; object-fit: contain; margin: auto; display: block;">
+                <div class="card-body text-center">
+                    <p><strong>Usuario:</strong> {{ imagen.nombre_usuario }}</p>
+                    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">Estado:</label>
+                            <select id="estado" class="form-select" formControlName="estado" required>
+                                <option value="" disabled>Selecciona un estado</option>
+                                <option value="admitido">Admitir</option>
+                                <option value="rechazado">Rechazar</option>
+                                <option value="pendiente">Pendiente</option>
+                            </select>
+                            @if (form.controls['estado'].invalid && (form.controls['estado'].dirty ||
+                            form.controls['estado'].touched)) {
+                            @if (form.controls['estado'].errors?.['required']) {
+                            <div class="alert alert-danger mt-2">El estado es obligatorio</div>
+                            }
+                            }
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-secondary" type="button" routerLink="/imagenes">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </button>
+                            <button class="btn btn-success" type="submit" [disabled]="form.invalid">
+                                <i class="bi bi-check-circle"></i> Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

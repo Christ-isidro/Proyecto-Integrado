@@ -1,0 +1,33 @@
+.asia-bg {
+    background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80');
+    background-blend-mode: multiply;
+    background-size: cover;
+    min-height: 100vh;
+}
+.asia-title {
+    font-family: 'Noto Serif JP', serif;
+    color: #b23c17;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 4px #f8b50055;
+}
+.asia-icon {
+    font-size: 2rem;
+    vertical-align: middle;
+}
+.asia-card {
+    border-radius: 1.5rem;
+    border: 2px solid #f8b500;
+    background: #fff8e1;
+    transition: transform 0.2s;
+}
+.asia-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px #f8b50055;
+}
+.asia-img {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    height: 250px;
+    object-fit: cover;
+    border-bottom: 2px solid #f8b500;
+}

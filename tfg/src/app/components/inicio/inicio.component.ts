@@ -12,6 +12,7 @@ import { Router, RouterLink } from '@angular/router';
 export class InicioComponent {
 
   imagenesAdmitidas: Imagen[] = [];
+  imagenesRanking: Imagen[] = [];
   idUsuario = localStorage.getItem('usuario');
 
   constructor(private imagenService: ImagenService, private router: Router) {
@@ -19,6 +20,8 @@ export class InicioComponent {
       next: (data) => {
         console.log(data);
         this.imagenesAdmitidas = data;
+        // Calcular el ranking de imágenes al cargar las admitidas
+        this.calcularRanking();
       }
       , error: (error) => {
         console.error("Error al cargar las imágenes admitidas:", error);
@@ -75,6 +78,42 @@ export class InicioComponent {
     let votos = JSON.parse(localStorage.getItem(clave) || '[]');
     // Devuelve true si el id de la imagen está en el array de votos, false si no
     return votos.includes(idImagen);
+  }
+
+  calcularRanking() {
+    /**
+     * Esta función calcula el ranking de imágenes más votadas.
+     * - Inicializa un contador de votos para cada imagen admitida.
+     * - Recorre todas las claves de localStorage que empiezan por 'votosRally_' (votos de cada usuario).
+     * - Suma los votos de cada imagen (cada usuario puede votar por varias imágenes, pero solo una vez por imagen).
+     * - Añade el campo 'votos' a cada imagen.
+     * - Ordena las imágenes por número de votos de mayor a menor.
+     * - Guarda el top 3 en 'imagenesRanking' (puedes quitar el '.slice(0, 3)' si quieres mostrar todas).
+     */
+    // Inicializa votos en 0 para cada imagen
+    const votosPorImagen: { [id: number]: number } = {};
+    this.imagenesAdmitidas.forEach(img => votosPorImagen[img.id_imagen] = 0);
+
+    // Recorre todas las claves de localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const clave = localStorage.key(i);
+      if (clave && clave.startsWith('votosRally_')) {
+        try {
+          const votos: number[] = JSON.parse(localStorage.getItem(clave) || '[]');
+          votos.forEach(idImg => {
+            if (votosPorImagen[idImg] !== undefined) {
+              votosPorImagen[idImg]++;
+            }
+          });
+        } catch { }
+      }
+    }
+
+    // Añade el campo votos a cada imagen y ordena
+    this.imagenesRanking = this.imagenesAdmitidas
+      .map(img => ({ ...img, votos: votosPorImagen[img.id_imagen] || 0 }))
+      .sort((a, b) => b.votos - a.votos)
+      .slice(0, 3); // Top 3, quita esto si quieres mostrar todas
   }
 
 }
