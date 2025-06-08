@@ -40,23 +40,15 @@ if (!file_exists('uploads')) {
 
 // Si se recibe una petición GET para una imagen
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
-    $imagePath = __DIR__ . '/uploads/' . basename($_GET['image']);
-    logError("Intentando servir imagen desde: " . $imagePath);
-    
+    $imagePath = 'uploads/' . basename($_GET['image']);
+    logError("Intentando servir imagen: " . $imagePath);
     if (file_exists($imagePath)) {
-        // Establecer los headers CORS
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: GET, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type');
-        
-        // Servir la imagen
         $mime = mime_content_type($imagePath);
         header('Content-Type: ' . $mime);
         readfile($imagePath);
         exit;
     }
-    
-    logError("Imagen no encontrada en: " . $imagePath);
+    logError("Imagen no encontrada: " . $imagePath);
     http_response_code(404);
     echo json_encode(['error' => 'Image not found']);
     exit;
@@ -164,37 +156,6 @@ if ($objeto != null) {
 
         case 'ValidarImagen':
             $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
-            break;
-
-        // Nuevos endpoints para votos
-        case 'RegistrarVoto':
-            print json_encode($modelo->RegistrarVoto($objeto->id_usuario, $objeto->id_imagen));
-            break;
-
-        case 'ObtenerVotosImagen':
-            print json_encode($modelo->ObtenerVotosImagen($objeto->id_imagen));
-            break;
-
-        case 'VerificarVotoUsuario':
-            print json_encode($modelo->VerificarVotoUsuario($objeto->id_usuario, $objeto->id_imagen));
-            break;
-
-        case 'ObtenerVotosPorUsuario':
-            print json_encode($modelo->ObtenerVotosPorUsuario($objeto->id_usuario));
-            break;
-
-        case 'ObtenerEstadisticasVotos':
-            print json_encode($modelo->ObtenerEstadisticasVotos());
-            break;
-
-        case 'ObtenerTopImagenes':
-            $limite = isset($objeto->limite) ? $objeto->limite : 5;
-            print json_encode($modelo->ObtenerTopImagenes($limite));
-            break;
-
-        case 'ObtenerVotosRecientes':
-            $limite = isset($objeto->limite) ? $objeto->limite : 10;
-            print json_encode($modelo->ObtenerVotosRecientes($limite));
             break;
 
         //Borrar

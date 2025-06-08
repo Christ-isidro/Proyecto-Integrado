@@ -28,14 +28,14 @@ class Modelo
                 $opciones
             );
         } catch (Exception $e) {
-            error_log("Database connection error: " . $e->getMessage());
+            // Return proper JSON error response
             header('Content-Type: application/json');
             http_response_code(500);
-            die(json_encode([
+            echo json_encode([
                 'success' => false,
-                'error' => 'Error de conexión a la base de datos',
-                'details' => $e->getMessage()
-            ]));
+                'error' => $e->getMessage()
+            ]);
+            exit;
         }
     }
 
@@ -72,14 +72,7 @@ class Modelo
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         } catch (Exception $e) {
-            error_log("Error en ListarImagenesAdmitidas: " . $e->getMessage());
-            header('Content-Type: application/json');
-            http_response_code(500);
-            die(json_encode([
-                'success' => false,
-                'error' => 'Error al listar las imágenes',
-                'details' => $e->getMessage()
-            ]));
+            die($e->getMessage());
         }
     }
 
@@ -339,146 +332,6 @@ class Modelo
         } catch (Exception $e) {
             error_log("Error en SubirImagen: " . $e->getMessage());
             throw $e;
-        }
-    }
-
-    // Métodos para el sistema de votos
-    public function RegistrarVoto($id_usuario, $id_imagen) {
-        try {
-            // Usar la función PostgreSQL para registrar voto
-            $sql = "SELECT * FROM registrar_voto($1, $2)";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$id_usuario, $id_imagen]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            // Formatear la respuesta según lo esperado por el frontend
-            return [
-                "success" => true,
-                "accion" => $result['registrar_voto'] ? 'added' : 'removed'
-            ];
-        } catch (Exception $e) {
-            error_log("Error en RegistrarVoto: " . $e->getMessage());
-            return ["success" => false, "error" => $e->getMessage()];
-        }
-    }
-
-    public function ObtenerVotosImagen($id_imagen) {
-        try {
-            // Usar la función PostgreSQL para obtener votos
-            $sql = "SELECT obtener_votos_imagen($1) as total";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$id_imagen]);
-            $result = $stmt->fetch();
-            return $result['total'];
-        } catch (Exception $e) {
-            error_log("Error en ObtenerVotosImagen: " . $e->getMessage());
-            return 0;
-        }
-    }
-
-    public function VerificarVotoUsuario($id_usuario, $id_imagen) {
-        try {
-            // Usar la función PostgreSQL para verificar voto
-            $sql = "SELECT verificar_voto_usuario($1, $2) as ha_votado";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$id_usuario, $id_imagen]);
-            $result = $stmt->fetch();
-            return $result['ha_votado'];
-        } catch (Exception $e) {
-            error_log("Error en VerificarVotoUsuario: " . $e->getMessage());
-            return false;
-        }
-    }
-
-    public function ObtenerVotosPorUsuario($id_usuario) {
-        try {
-            $sql = "SELECT id_imagen FROM votos WHERE id_usuario = $1";
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$id_usuario]);
-            return $stmt->fetchAll(PDO::FETCH_COLUMN);
-        } catch (Exception $e) {
-            error_log("Error en ObtenerVotosPorUsuario: " . $e->getMessage());
-            header('Content-Type: application/json');
-            http_response_code(500);
-            die(json_encode([
-                'success' => false,
-                'error' => 'Error al obtener votos del usuario',
-                'details' => $e->getMessage()
-            ]));
-        }
-    }
-
-    public function ObtenerEstadisticasVotos() {
-        try {
-            $sql = "
-                SELECT 
-                    i.id_imagen,
-                    i.titulo,
-                    u.nombre as nombre_usuario,
-                    COUNT(v.id_voto) as total_votos,
-                    i.fecha_subida,
-                    i.estado
-                FROM imagenes i
-                LEFT JOIN usuarios u ON i.id_usuario = u.id
-                LEFT JOIN votos v ON i.id_imagen = v.id_imagen
-                GROUP BY i.id_imagen, u.nombre
-                ORDER BY total_votos DESC, i.fecha_subida DESC";
-            
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchAll();
-        } catch (Exception $e) {
-            error_log("Error en ObtenerEstadisticasVotos: " . $e->getMessage());
-            return [];
-        }
-    }
-
-    public function ObtenerTopImagenes($limite = 5) {
-        try {
-            $sql = "
-                SELECT 
-                    i.id_imagen,
-                    i.titulo,
-                    i.ruta,
-                    u.nombre as nombre_usuario,
-                    COUNT(v.id_voto) as total_votos
-                FROM imagenes i
-                LEFT JOIN usuarios u ON i.id_usuario = u.id
-                LEFT JOIN votos v ON i.id_imagen = v.id_imagen
-                WHERE i.estado = 'aprobada'
-                GROUP BY i.id_imagen, u.nombre
-                ORDER BY total_votos DESC
-                LIMIT $1";
-            
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$limite]);
-            return $stmt->fetchAll();
-        } catch (Exception $e) {
-            error_log("Error en ObtenerTopImagenes: " . $e->getMessage());
-            return [];
-        }
-    }
-
-    public function ObtenerVotosRecientes($limite = 10) {
-        try {
-            $sql = "
-                SELECT 
-                    v.id_voto,
-                    v.fecha_voto,
-                    i.titulo as titulo_imagen,
-                    u.nombre as nombre_usuario
-                FROM votos v
-                JOIN imagenes i ON v.id_imagen = i.id_imagen
-                JOIN usuarios u ON v.id_usuario = u.id
-                ORDER BY v.fecha_voto DESC
-                LIMIT $1";
-            
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$limite]);
-            return $stmt->fetchAll();
-        } catch (Exception $e) {
-            error_log("Error en ObtenerVotosRecientes: " . $e->getMessage());
-            return [];
         }
     }
 }
