@@ -1,5 +1,8 @@
 <?php
 header('Content-Type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
 // Enable error reporting for debugging
 ini_set('display_errors', 1);
@@ -18,10 +21,10 @@ $modelo = new Modelo();
 // Log function
 function logError($message, $data = null) {
     $logMessage = date('Y-m-d H:i:s') . " - " . $message;
-    if ($data) {
+    if ($data !== null) {
         $logMessage .= " - Data: " . json_encode($data);
     }
-    error_log($logMessage . "\n", 3, "upload_errors.log");
+    error_log($logMessage);
 }
 
 // Asegurarse de que el directorio uploads existe
@@ -112,32 +115,50 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
     exit;
 }
 
-//  Con esta línea recogemos los datos (en formato JSON), enviados por el cliente:
-$datos = file_get_contents('php://input');
-//  Lo convertimos a un objeto php:
-$objeto = json_decode($datos);
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-if ($objeto != null) {
+// Log the request method and content type
+logError("Request Method: " . $_SERVER['REQUEST_METHOD']);
+logError("Content Type: " . $_SERVER['CONTENT_TYPE']);
+
+// Get the raw POST data
+$rawData = file_get_contents('php://input');
+logError("Raw input data: " . $rawData);
+
+//  Convertimos a un objeto php:
+$objeto = json_decode($rawData);
+
+if ($objeto !== null) {
     try {
-        error_log("Acción recibida: " . $objeto->accion);
+        logError("Acción recibida", $objeto);
         
         switch ($objeto->accion) {
             case 'ListarImagenesAdmitidas':
                 $imagenes = $modelo->ListarImagenesAdmitidas();
-                error_log("Enviando respuesta ListarImagenesAdmitidas: " . json_encode($imagenes));
-                print json_encode($imagenes);
+                logError("Enviando respuesta ListarImagenesAdmitidas", $imagenes);
+                echo json_encode($imagenes);
                 break;
 
             case 'VotarImagen':
+                if (!isset($objeto->id_imagen) || !isset($objeto->id_usuario)) {
+                    throw new Exception("Faltan parámetros necesarios para votar");
+                }
                 $resultado = $modelo->VotarImagen($objeto->id_imagen, $objeto->id_usuario);
-                error_log("Enviando respuesta VotarImagen: " . json_encode($resultado));
-                print json_encode($resultado);
+                logError("Enviando respuesta VotarImagen", $resultado);
+                echo json_encode($resultado);
                 break;
 
             case 'ObtenerVotosUsuario':
+                if (!isset($objeto->id_usuario)) {
+                    throw new Exception("Falta el ID de usuario");
+                }
                 $votos = $modelo->ObtenerVotosUsuario($objeto->id_usuario);
-                error_log("Enviando respuesta ObtenerVotosUsuario: " . json_encode($votos));
-                print json_encode($votos);
+                logError("Enviando respuesta ObtenerVotosUsuario", $votos);
+                echo json_encode($votos);
                 break;
 
             //Listar
@@ -196,14 +217,20 @@ if ($objeto != null) {
             case 'IniciarSesion':
                 $modelo->IniciarSesion($objeto);
                 break;
+
+            default:
+                logError("Acción no reconocida", $objeto->accion);
+                http_response_code(400);
+                echo json_encode(["error" => "Acción no reconocida"]);
+                break;
         }
     } catch (Exception $e) {
-        error_log("Error en servicios.php: " . $e->getMessage());
+        logError("Error en servicios.php: " . $e->getMessage());
         http_response_code(500);
-        print json_encode(["error" => $e->getMessage()]);
+        echo json_encode(["error" => $e->getMessage()]);
     }
 } else {
-    error_log("No se recibió ningún objeto JSON válido");
+    logError("Error decodificando JSON", ["error" => json_last_error_msg()]);
     http_response_code(400);
-    print json_encode(["error" => "No se recibió ningún objeto JSON válido"]);
+    echo json_encode(["error" => "Datos JSON inválidos: " . json_last_error_msg()]);
 }

@@ -27,18 +27,39 @@ export class InicioComponent implements OnInit {
   }
 
   cargarImagenesAdmitidas() {
+    console.log('Iniciando carga de imágenes admitidas');
     this.imagenService.ListarImagenesAdmitidas().subscribe({
       next: (data) => {
-        console.log('Imágenes admitidas:', data);
-        this.imagenesAdmitidas = data.map(img => ({
-          ...img,
-          titulo: img.titulo || 'Sin título',
-          votos: img.votos || 0
-        }));
-        this.imagenesRanking = [...this.imagenesAdmitidas].sort((a, b) => (b.votos || 0) - (a.votos || 0));
+        console.log('Datos recibidos de imágenes admitidas:', data);
+        if (!Array.isArray(data)) {
+          console.error('La respuesta no es un array:', data);
+          this.imagenesAdmitidas = [];
+          this.imagenesRanking = [];
+          return;
+        }
+
+        this.imagenesAdmitidas = data.map(img => {
+          console.log('Procesando imagen:', img);
+          return {
+            ...img,
+            titulo: img.titulo || 'Sin título',
+            votos: parseInt(img.votos) || 0,
+            ruta: img.ruta || ''
+          };
+        });
+
+        console.log('Imágenes procesadas:', this.imagenesAdmitidas);
+        this.imagenesRanking = [...this.imagenesAdmitidas]
+          .sort((a, b) => (b.votos || 0) - (a.votos || 0));
+        console.log('Ranking generado:', this.imagenesRanking);
       },
       error: (error) => {
         console.error("Error al cargar las imágenes admitidas:", error);
+        if (error.error) {
+          console.error("Detalles del error:", error.error);
+        }
+        this.imagenesAdmitidas = [];
+        this.imagenesRanking = [];
       }
     });
   }

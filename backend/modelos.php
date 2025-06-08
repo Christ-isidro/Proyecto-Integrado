@@ -69,6 +69,22 @@ class Modelo
         try {
             error_log("Iniciando ListarImagenesAdmitidas");
             
+            // Verificar la conexión a la base de datos
+            if (!$this->pdo) {
+                error_log("Error: No hay conexión a la base de datos");
+                return [];
+            }
+
+            // Primero verificamos si hay imágenes admitidas
+            $checkQuery = "SELECT COUNT(*) FROM imagenes WHERE estado IN ('admitida', 'admitido')";
+            $count = $this->pdo->query($checkQuery)->fetchColumn();
+            error_log("Número de imágenes admitidas encontradas: " . $count);
+
+            if ($count == 0) {
+                error_log("No hay imágenes admitidas en la base de datos");
+                return [];
+            }
+            
             // Consulta adaptada para PostgreSQL y ambos estados posibles
             $consulta = "SELECT i.*, u.nombre as nombre_usuario, 
                         COALESCE((SELECT COUNT(*) FROM votos v WHERE v.id_imagen = i.id_imagen), 0) as votos 
@@ -81,13 +97,21 @@ class Modelo
             
             $resultado = $this->pdo->query($consulta);
             if (!$resultado) {
-                error_log("Error en la consulta: " . json_encode($this->pdo->errorInfo()));
+                $error = $this->pdo->errorInfo();
+                error_log("Error en la consulta: " . json_encode($error));
                 return [];
             }
             
             $imagenes = $resultado->fetchAll(PDO::FETCH_ASSOC);
             error_log("Imágenes encontradas: " . count($imagenes));
-            error_log("Datos de imágenes: " . json_encode($imagenes));
+            
+            // Log de cada imagen para debugging
+            foreach ($imagenes as $img) {
+                error_log("Imagen ID: " . $img['id_imagen'] . 
+                         ", Usuario: " . $img['nombre_usuario'] . 
+                         ", Estado: " . $img['estado'] . 
+                         ", Votos: " . $img['votos']);
+            }
             
             return $imagenes;
         } catch (Exception $e) {
