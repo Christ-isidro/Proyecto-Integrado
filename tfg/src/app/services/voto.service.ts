@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 
 interface VotoResponse {
   success: boolean;
-  action?: 'added' | 'removed';
+  accion?: 'added' | 'removed';
   error?: string;
 }
 
@@ -45,7 +45,7 @@ export class VotoService {
     return this.http.post<VotoResponse>(`${this.url}/servicios.php`, JSON.stringify(datos)).pipe(
       map(response => {
         const votosActuales = this.votosSubject.value;
-        if (response.action === 'added') {
+        if (response.accion === 'added') {
           votosActuales[idImagen] = true;
         } else {
           delete votosActuales[idImagen];

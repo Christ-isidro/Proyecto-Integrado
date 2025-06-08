@@ -106,7 +106,7 @@ export class InicioComponent implements OnInit {
       );
       
       if (response?.success) {
-        if (response.action === 'added') {
+        if (response.accion === 'added') {
           this.votosUsuario.add(id_imagen);
         } else {
           this.votosUsuario.delete(id_imagen);

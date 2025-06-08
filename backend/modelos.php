@@ -342,7 +342,13 @@ class Modelo
             $sql = "SELECT * FROM registrar_voto($1, $2)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$id_usuario, $id_imagen]);
-            return $stmt->fetch();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Formatear la respuesta según lo esperado por el frontend
+            return [
+                "success" => true,
+                "accion" => $result['registrar_voto'] ? 'added' : 'removed'
+            ];
         } catch (Exception $e) {
             error_log("Error en RegistrarVoto: " . $e->getMessage());
             return ["success" => false, "error" => $e->getMessage()];
