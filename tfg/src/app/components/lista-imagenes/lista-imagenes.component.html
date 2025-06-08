@@ -20,8 +20,10 @@
                 @for (imagen of imagenes; track $index) {
                 <div class="col-md-4 mb-4">
                     <div class="card shadow h-100">
-                        <img [src]="getImageUrl(imagen.ruta)" class="card-img-top asia-img"
-                            alt="Imagen de {{ imagen.nombre_usuario }}" style="height: 200px; object-fit: cover;">
+                        <img [src]="imagen.ruta" class="card-img-top asia-img"
+                            alt="Imagen de {{ imagen.nombre_usuario }}" 
+                            style="height: 200px; object-fit: cover;"
+                            onerror="this.src='assets/placeholder.jpg'">
                         <div class="card-body">
                             <h5 class="card-title">{{ imagen.titulo }}</h5>
                             <p class="card-text"><strong>Usuario:</strong> {{ imagen.nombre_usuario }}</p>

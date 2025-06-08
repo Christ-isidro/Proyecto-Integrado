@@ -40,8 +40,10 @@
                 @for (imagen of imagenes; track $index) {
                 <div class="col-md-4 mb-3">
                     <div class="card shadow asia-card">
-                        <img [src]="getImageUrl(imagen.ruta)"
-                            class="card-img-top asia-img" alt="Imagen de {{ usuario.nombre }}">
+                        <img [src]="imagen.ruta"
+                            class="card-img-top asia-img" 
+                            alt="Imagen de {{ usuario.nombre }}"
+                            onerror="this.src='assets/placeholder.jpg'">
                         <div class="card-body text-center">
                             <h5 class="card-title fw-bold">{{ imagen.titulo }}</h5>
                             <span [class.bg-warning]="imagen.estado === 'pendiente'"

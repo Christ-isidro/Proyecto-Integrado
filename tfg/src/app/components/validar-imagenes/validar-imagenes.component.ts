@@ -1,76 +1,86 @@
-import { Component } from '@angular/core';
-import { FormGroup, Validators, FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Imagen } from '../../models/imagen';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ImagenService } from '../../services/imagen.service';
+import { Imagen } from '../../models/imagen';
 
 @Component({
   selector: 'app-validar-imagenes',
-  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './validar-imagenes.component.html',
-  styleUrl: './validar-imagenes.component.css'
+  styleUrls: ['./validar-imagenes.component.css']
 })
-export class ValidarImagenesComponent {
-
-  public imagen: Imagen = <Imagen>{};
-  public form: FormGroup;
+export class ValidarImagenesComponent implements OnInit {
+  form: FormGroup;
+  imagen: Imagen = {
+    id_imagen: 0,
+    titulo: '',
+    ruta: '',
+    estado: '',
+    id_usuario: 0,
+    nombre_usuario: '',
+    votos: 0
+  };
 
   constructor(
-    private fb: FormBuilder,
-    private ar: ActivatedRoute,
-    private router: Router,
     private servicio: ImagenService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private fb: FormBuilder
   ) {
     this.form = this.fb.group({
       estado: ['', Validators.required]
     });
-
-    let id_imagen = parseInt(this.ar.snapshot.params["id_imagen"]);
   }
 
-  ngOnInit() {
-    const id_imagen = this.ar.snapshot.params['id_imagen'];
-
-    console.log('ID de imagen recibido:', id_imagen);
+  ngOnInit(): void {
+    const id = this.route.snapshot.params['id'];
+    if (!id) {
+      console.error('No se proporcionó ID de imagen');
+      this.router.navigate(['/imagenes']);
+      return;
+    }
 
     this.servicio.ListarImagenes().subscribe({
       next: (imagenes) => {
-        // Busca la imagen por id
-        const encontrada = imagenes.find((img: Imagen) => img.id_imagen == id_imagen);
-        if (encontrada) {
-          this.imagen = encontrada;
-          // Opcional: poner el estado actual en el formulario
+        if (!Array.isArray(imagenes)) {
+          console.error('La respuesta no es un array:', imagenes);
+          return;
+        }
+
+        const imagen = imagenes.find(img => img.id_imagen === parseInt(id));
+        if (imagen) {
+          this.imagen = {
+            ...imagen,
+            titulo: imagen.titulo || 'Sin título',
+            ruta: imagen.ruta || '',
+            estado: imagen.estado || 'pendiente'
+          };
           this.form.patchValue({ estado: this.imagen.estado });
         } else {
-          alert('Imagen no encontrada');
+          console.error('No se encontró la imagen con ID:', id);
           this.router.navigate(['/imagenes']);
         }
       },
-      error: () => {
-        alert('Error al cargar la imagen');
+      error: (error) => {
+        console.error('Error al cargar la imagen:', error);
         this.router.navigate(['/imagenes']);
       }
     });
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
-    
-    console.log('Formulario enviado:', this.form.value);
-    this.servicio.ValidarImagen(this.imagen.id_imagen, this.form.value.estado).subscribe({
-      next: (res) => {
-        console.log('Imagen validada correctamente:', res);
-        alert('Imagen validada correctamente');
-        this.router.navigate(['/imagenes']);
-      },
-      error: (err) => {
-        console.error('Error al validar imagen:', err);
-        alert('Error al validar imagen');
-      }
-    });
+    if (this.form.valid) {
+      const estado = this.form.get('estado')?.value;
+      this.servicio.ValidarImagen(this.imagen.id_imagen, estado).subscribe({
+        next: (response) => {
+          console.log('Imagen validada:', response);
+          this.router.navigate(['/imagenes']);
+        },
+        error: (error) => {
+          console.error('Error al validar la imagen:', error);
+        }
+      });
+    }
   }
 
-  getImageUrl(ruta: string): string {
-    return this.servicio.getImageUrl(ruta);
-  }
 }

@@ -168,8 +168,5 @@ export class InicioComponent implements OnInit {
     return Array.isArray(this.votosUsuario) && this.votosUsuario.includes(id_imagen);
   }
 
-  getImageUrl(ruta: string): string {
-    return this.imagenService.getImageUrl(ruta);
-  }
 
 }

@@ -16,9 +16,10 @@
                 Validar Imagen de Asia
             </h3>
             <div class="card shadow" style="max-width: 600px; width: 100%;">
-                <img [src]="getImageUrl(imagen.ruta)" alt="Imagen a validar"
+                <img [src]="imagen.ruta" alt="Imagen a validar"
                     class="img-fluid rounded asia-img"
-                    style="max-height: 400px; object-fit: contain; margin: auto; display: block;">
+                    style="max-height: 400px; object-fit: contain; margin: auto; display: block;"
+                    onerror="this.src='assets/placeholder.jpg'">
                 
                 <p><strong>Usuario:</strong> {{ imagen.nombre_usuario }}</p>
                 <form [formGroup]="form" (ngSubmit)="onSubmit()">
