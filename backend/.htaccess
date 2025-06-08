@@ -28,24 +28,4 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     Options Indexes FollowSymLinks
     AllowOverride None
     Require all granted
-</Directory>
-
-# Enable CORS
-Header set Access-Control-Allow-Origin "https://proyecto-integrado-rouge.vercel.app"
-Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
-Header set Access-Control-Allow-Headers "Content-Type"
-Header set Access-Control-Allow-Credentials "true"
-
-# Handle OPTIONS method
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ $1 [R=200,L]
-
-# PHP settings
-php_value upload_max_filesize 20M
-php_value post_max_size 20M
-php_value max_execution_time 300
-php_value max_input_time 300
-
-# Handle errors
-ErrorDocument 404 /404.php
-ErrorDocument 500 /500.php 
+</Directory> 

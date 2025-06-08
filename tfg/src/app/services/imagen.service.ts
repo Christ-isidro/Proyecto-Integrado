@@ -19,57 +19,49 @@ export class ImagenService {
     this.isProduction = window.location.hostname !== 'localhost';
     
     if (this.isProduction) {
-      this.url = 'https://proyecto-integrado.onrender.com';
+      this.url = 'https://proyecto-integrado.onrender.com/backend';
       this.baseImagePath = this.url;
     } else {
       this.url = 'http://localhost/Proyecto%20Integrado/backend';
       this.baseImagePath = 'http://localhost/Proyecto%20Integrado/backend';
     }
-
-    console.log('ImagenService initialized:', {
-      isProduction: this.isProduction,
-      url: this.url,
-      baseImagePath: this.baseImagePath
-    });
-  }
-
-  private getHttpOptions() {
-    return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-      }),
-      withCredentials: true
-    };
   }
 
   getImageUrl(relativePath: string): string {
     if (!relativePath) {
-      console.warn('getImageUrl called with empty path');
+      console.error('getImageUrl: Ruta vacía');
       return '';
     }
     
-    console.log('getImageUrl input:', relativePath);
+    console.log('getImageUrl - Ruta recibida:', relativePath);
 
-    // Si ya es una URL completa, devolverla
+    // Si ya es una URL completa, pero es una URL antigua, actualizarla
     if (relativePath.startsWith('http')) {
-      console.log('URL is already complete:', relativePath);
+      const fileName = relativePath.split('image=').pop();
+      if (fileName) {
+        console.log('getImageUrl - Extrayendo nombre de archivo de URL antigua:', fileName);
+        return this.constructImageUrl(fileName);
+      }
       return relativePath;
     }
 
     // Extraer solo el nombre del archivo
     const fileName = relativePath.split('/').pop();
     if (!fileName) {
-      console.warn('No se pudo extraer el nombre del archivo de:', relativePath);
+      console.error('getImageUrl - No se pudo extraer el nombre del archivo de:', relativePath);
       return '';
     }
 
+    return this.constructImageUrl(fileName);
+  }
+
+  private constructImageUrl(fileName: string): string {
     // Construir la URL usando el endpoint de servir imágenes
     const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName)}`;
     
-    console.log('Generated image URL:', {
-      originalPath: relativePath,
-      fileName: fileName,
-      fullUrl: fullUrl,
+    console.log('getImageUrl - URL generada:', {
+      nombreArchivo: fileName,
+      urlCompleta: fullUrl,
       baseImagePath: this.baseImagePath
     });
 
@@ -77,15 +69,20 @@ export class ImagenService {
   }
 
   ListarImagenes() {
+    console.log('ListarImagenes - Iniciando petición');
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
-        console.log('ListarImagenes response:', imagenes);
+        console.log('ListarImagenes - Respuesta recibida:', imagenes);
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
+            console.log('ListarImagenes - Procesando imagen:', {
+              rutaOriginal: img.ruta,
+              urlGenerada: this.getImageUrl(img.ruta)
+            });
             img.ruta = this.getImageUrl(img.ruta);
           }
         });
