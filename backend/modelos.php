@@ -317,9 +317,9 @@ class Modelo
             }
 
             // Validar el tamaño del archivo
-            $maxFileSize = 20 * 1024 * 1024; // 20MB en bytes
+            $maxFileSize = 5.5 * 1024 * 1024; // 5.5MB en bytes
             if ($imagen['size'] > $maxFileSize) {
-                throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
+                throw new Exception('La imagen debe ser menor a 5.5MB');
             }
 
             // Validar el tipo de archivo
