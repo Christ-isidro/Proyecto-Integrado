@@ -42,27 +42,22 @@ export class ImagenService {
       return relativePath;
     }
 
-    // Si la ruta comienza con /backend/, construir la URL completa
-    if (relativePath.startsWith('/backend/')) {
-      const fullUrl = `${this.baseImagePath}${relativePath}`;
-      console.log('Generated image URL from backend path:', fullUrl);
-      return fullUrl;
+    // Limpiar la ruta de cualquier prefijo no deseado
+    let cleanPath = relativePath
+      .replace(/^\/+/, '')  // Eliminar slashes iniciales
+      .replace(/\\/g, '/'); // Reemplazar backslashes por forward slashes
+
+    // Si la ruta ya contiene 'uploads', extraer solo el nombre del archivo
+    if (cleanPath.includes('uploads/')) {
+      cleanPath = cleanPath.split('uploads/').pop() || '';
     }
 
-    // Para rutas antiguas o diferentes formatos
-    const fileName = relativePath
-      .replace(/^\/+/, '')
-      .replace(/\\/g, '/')
-      .replace(/^(images|uploads)\//, '')
-      .split('/')
-      .pop() || '';
-
-    // Construir la URL usando el endpoint de servir imágenes
-    const fullUrl = `${this.baseImagePath}/backend/uploads/${encodeURIComponent(fileName)}`;
+    // Construir la URL completa
+    const fullUrl = `${this.baseImagePath}/uploads/${encodeURIComponent(cleanPath)}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,
-      fileName: fileName,
+      cleanPath: cleanPath,
       fullUrl: fullUrl,
       baseImagePath: this.baseImagePath
     });
