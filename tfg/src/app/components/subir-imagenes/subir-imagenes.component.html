@@ -55,7 +55,7 @@
                 @if (uploadError) {
                     <div class="alert alert-danger mb-3">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        <span [innerHTML]="uploadError.replace(/\n/g, '<br>')"></span>
+                        <span [innerHTML]="getFormattedError()"></span>
                     </div>
                 }
 

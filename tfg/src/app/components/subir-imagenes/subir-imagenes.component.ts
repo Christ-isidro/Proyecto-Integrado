@@ -19,6 +19,11 @@ export class SubirImagenesComponent implements OnInit {
   uploadProgress: number = 0;
   uploadError: string | null = null;
 
+  // Método para formatear el mensaje de error
+  getFormattedError(): string {
+    return this.uploadError ? this.uploadError.split('\n').join('<br>') : '';
+  }
+
   constructor(
     private usuarioService: UsuarioService,
     private imagenService: ImagenService,
@@ -70,9 +75,7 @@ export class SubirImagenesComponent implements OnInit {
       const maxSize = 5 * 1024 * 1024; // 5MB en bytes
       if (this.file.size > maxSize) {
         const fileSizeMB = (this.file.size / 1024 / 1024).toFixed(2);
-        this.uploadError = `La imagen es demasiado grande (${fileSizeMB}MB). 
-          Por favor, reduce el tamaño de la imagen a menos de 5MB. 
-          Puedes usar herramientas online como TinyPNG o ImageOptimizer para reducir el tamaño.`;
+        this.uploadError = `La imagen es demasiado grande (${fileSizeMB}MB).\nPor favor, reduce el tamaño de la imagen a menos de 5MB.\nPuedes usar herramientas online como TinyPNG o ImageOptimizer para reducir el tamaño.`;
         alert(`⚠️ Imagen demasiado grande (${fileSizeMB}MB)\n\nPor favor:\n- Reduce el tamaño a menos de 5MB\n- Usa una herramienta de compresión de imágenes\n- Intenta con una imagen más pequeña`);
         this.file = null;
         input.value = '';
