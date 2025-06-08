@@ -45,17 +45,8 @@ export class ListaImagenesComponent implements OnInit {
     });
   }
 
-  validar(id_imagen: number, estado_actual: string) {
-    const nuevo_estado = estado_actual === 'pendiente' ? 'admitido' : 'pendiente';
-    this.imagenService.ValidarImagen(id_imagen, nuevo_estado).subscribe({
-      next: (response) => {
-        console.log('Imagen validada:', response);
-        this.cargarImagenes();
-      },
-      error: (error) => {
-        console.error('Error al validar imagen:', error);
-      }
-    });
+  validar(id_imagen: number) {
+    this.router.navigate(['/validar-imagen', id_imagen]);
   }
 
   eliminarImagen(id_imagen: number) {
