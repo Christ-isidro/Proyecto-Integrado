@@ -4,10 +4,9 @@ define('BASE_PATH', __DIR__);
 define('UPLOADS_DIR', BASE_PATH . DIRECTORY_SEPARATOR . 'uploads');
 
 // Determinar la URL base del backend
-$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-$host = $_SERVER['HTTP_HOST'];
-define('BASE_URL', $protocol . $host);
-define('UPLOADS_URL', 'uploads/');
+$isProduction = isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'onrender.com') !== false;
+define('BASE_URL', $isProduction ? 'https://proyecto-integrado.onrender.com' : 'http://localhost/Proyecto%20Integrado/backend');
+define('UPLOADS_URL', BASE_URL . '/uploads/');
 
 // Asegurarse de que el directorio uploads existe
 if (!file_exists(UPLOADS_DIR)) {

@@ -4,15 +4,18 @@ require_once 'modelos.php';
 $modelo = new Modelo();
 
 try {
-    // Actualizar las rutas que comienzan con /backend/uploads/
-    $consulta = "UPDATE imagenes SET ruta = REGEXP_REPLACE(ruta, '^/backend/uploads/', 'uploads/')";
+    // Actualizar todas las rutas para usar la URL completa del backend
+    $baseUrl = 'https://proyecto-integrado.onrender.com/uploads';
+    
+    // Primero, normalizar todas las rutas a formato simple
+    $consulta = "UPDATE imagenes SET ruta = REGEXP_REPLACE(ruta, '^.*uploads/', 'uploads/')";
     $stmt = $modelo->pdo->prepare($consulta);
     $stmt->execute();
     
-    // Actualizar las rutas que comienzan con /uploads/
-    $consulta = "UPDATE imagenes SET ruta = REGEXP_REPLACE(ruta, '^/uploads/', 'uploads/')";
+    // Luego, añadir la URL base
+    $consulta = "UPDATE imagenes SET ruta = CONCAT(:base_url, '/', ruta)";
     $stmt = $modelo->pdo->prepare($consulta);
-    $stmt->execute();
+    $stmt->execute(['base_url' => rtrim($baseUrl, '/')]);
     
     echo "Rutas actualizadas correctamente\n";
     
