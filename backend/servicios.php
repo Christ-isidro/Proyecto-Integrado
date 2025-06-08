@@ -145,8 +145,16 @@ if ($objeto !== null) {
 
             case 'VotarImagen':
                 if (!isset($objeto->id_imagen) || !isset($objeto->id_usuario)) {
+                    logError("Faltan parámetros necesarios para votar", [
+                        'id_imagen' => $objeto->id_imagen ?? 'no definido',
+                        'id_usuario' => $objeto->id_usuario ?? 'no definido'
+                    ]);
                     throw new Exception("Faltan parámetros necesarios para votar");
                 }
+                logError("Procesando voto", [
+                    'id_imagen' => $objeto->id_imagen,
+                    'id_usuario' => $objeto->id_usuario
+                ]);
                 $resultado = $modelo->VotarImagen($objeto->id_imagen, $objeto->id_usuario);
                 logError("Enviando respuesta VotarImagen", $resultado);
                 echo json_encode($resultado);

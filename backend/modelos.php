@@ -395,7 +395,7 @@ class Modelo
             }
 
             // Verificar que la imagen existe
-            $consultaImagen = "SELECT id_imagen FROM imagenes WHERE id_imagen = $1";
+            $consultaImagen = "SELECT id_imagen FROM imagenes WHERE id_imagen = ?";
             $stmtImagen = $this->pdo->prepare($consultaImagen);
             $stmtImagen->execute([$id_imagen]);
             if (!$stmtImagen->fetch()) {
@@ -404,7 +404,7 @@ class Modelo
             }
 
             // Verificar que el usuario existe
-            $consultaUsuario = "SELECT id FROM usuarios WHERE id = $1";
+            $consultaUsuario = "SELECT id FROM usuarios WHERE id = ?";
             $stmtUsuario = $this->pdo->prepare($consultaUsuario);
             $stmtUsuario->execute([$id_usuario]);
             if (!$stmtUsuario->fetch()) {
@@ -413,7 +413,7 @@ class Modelo
             }
 
             // Verificar si ya existe el voto
-            $consultaVoto = "SELECT id_voto FROM votos WHERE id_imagen = $1 AND id_usuario = $2";
+            $consultaVoto = "SELECT id_voto FROM votos WHERE id_imagen = ? AND id_usuario = ?";
             $stmtVoto = $this->pdo->prepare($consultaVoto);
             $stmtVoto->execute([$id_imagen, $id_usuario]);
             if ($stmtVoto->fetch()) {
@@ -422,7 +422,7 @@ class Modelo
             }
 
             // Insertar el voto
-            $consulta = "INSERT INTO votos (id_imagen, id_usuario) VALUES ($1, $2) RETURNING id_voto";
+            $consulta = "INSERT INTO votos (id_imagen, id_usuario) VALUES (?, ?) RETURNING id_voto";
             $stmt = $this->pdo->prepare($consulta);
             
             error_log("Intentando insertar voto - Usuario: $id_usuario, Imagen: $id_imagen");
