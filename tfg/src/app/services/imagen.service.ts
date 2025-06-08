@@ -42,29 +42,19 @@ export class ImagenService {
       return relativePath;
     }
 
-    // Si la ruta comienza con /backend/, construir la URL completa
-    if (relativePath.startsWith('/backend/')) {
-      const fullUrl = `${this.baseImagePath}${relativePath}`;
-      console.log('Generated image URL from backend path:', fullUrl);
-      return fullUrl;
-    }
-
-    // Para rutas antiguas o diferentes formatos
+    // Extraer el nombre del archivo de la ruta
     const fileName = relativePath
-      .replace(/^\/+/, '')
-      .replace(/\\/g, '/')
-      .replace(/^(images|uploads)\//, '')
       .split('/')
       .pop() || '';
 
-    // Construir la URL usando el endpoint de servir imágenes
-    const fullUrl = `${this.baseImagePath}/backend/uploads/${encodeURIComponent(fileName)}`;
+    // Construir la URL completa al endpoint del backend que sirve las imágenes
+    const fullUrl = `${this.url}/servicios.php?image=${encodeURIComponent(fileName)}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,
       fileName: fileName,
       fullUrl: fullUrl,
-      baseImagePath: this.baseImagePath
+      baseUrl: this.url
     });
 
     return fullUrl;

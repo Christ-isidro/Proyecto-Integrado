@@ -40,15 +40,23 @@ if (!file_exists('uploads')) {
 
 // Si se recibe una petición GET para una imagen
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
-    $imagePath = 'uploads/' . basename($_GET['image']);
-    logError("Intentando servir imagen: " . $imagePath);
+    $imagePath = __DIR__ . '/uploads/' . basename($_GET['image']);
+    logError("Intentando servir imagen desde: " . $imagePath);
+    
     if (file_exists($imagePath)) {
+        // Establecer los headers CORS
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type');
+        
+        // Servir la imagen
         $mime = mime_content_type($imagePath);
         header('Content-Type: ' . $mime);
         readfile($imagePath);
         exit;
     }
-    logError("Imagen no encontrada: " . $imagePath);
+    
+    logError("Imagen no encontrada en: " . $imagePath);
     http_response_code(404);
     echo json_encode(['error' => 'Image not found']);
     exit;
