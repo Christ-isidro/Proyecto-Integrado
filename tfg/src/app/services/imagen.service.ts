@@ -42,14 +42,15 @@ export class ImagenService {
       return relativePath;
     }
 
-    // Asegurarse de que la ruta comience con uploads/
-    let fileName = relativePath;
-    if (!fileName.startsWith('uploads/')) {
-      fileName = 'uploads/' + fileName.replace(/^(images|uploads)\//, '');
+    // Extraer solo el nombre del archivo
+    const fileName = relativePath.split('/').pop();
+    if (!fileName) {
+      console.warn('No se pudo extraer el nombre del archivo de:', relativePath);
+      return '';
     }
 
     // Construir la URL usando el endpoint de servir imágenes
-    const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName.replace('uploads/', ''))}`;
+    const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName)}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,

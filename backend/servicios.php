@@ -25,22 +25,23 @@ function logError($message, $data = null) {
 }
 
 // Asegurarse de que el directorio uploads existe
-if (!file_exists('uploads')) {
-    if (!mkdir('uploads', 0777, true)) {
+$uploadsDir = __DIR__ . '/uploads';
+if (!file_exists($uploadsDir)) {
+    if (!mkdir($uploadsDir, 0777, true)) {
         logError("Error al crear el directorio uploads");
         http_response_code(500);
         echo json_encode(['error' => 'No se pudo crear el directorio de uploads']);
         exit;
     }
-    chmod('uploads', 0777);  // Asegurar permisos después de la creación
+    chmod($uploadsDir, 0777);  // Asegurar permisos después de la creación
     // También crear un archivo index.html vacío para prevenir listado de directorios
-    file_put_contents('uploads/index.html', '');
+    file_put_contents($uploadsDir . '/index.html', '');
     logError("Directorio uploads creado exitosamente");
 }
 
 // Si se recibe una petición GET para una imagen
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
-    $imagePath = 'uploads/' . basename($_GET['image']);
+    $imagePath = $uploadsDir . '/' . basename($_GET['image']);
     logError("Intentando servir imagen: " . $imagePath);
     if (file_exists($imagePath)) {
         $mime = mime_content_type($imagePath);

@@ -280,7 +280,8 @@ class Modelo
                 throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
             }
 
-            $target_dir = "uploads/";
+            // Usar la ruta absoluta del directorio uploads
+            $target_dir = __DIR__ . "/uploads/";
             // Asegurarse de que el directorio existe
             if (!file_exists($target_dir)) {
                 if (!mkdir($target_dir, 0777, true)) {
@@ -295,7 +296,7 @@ class Modelo
             $target_file = $target_dir . $unique_filename;
             
             // Solo guardamos la ruta relativa en la base de datos
-            $ruta_relativa = $target_file;  // uploads/photo_xxxxx.jpg
+            $ruta_relativa = "uploads/" . $unique_filename;
 
             // Validar el tipo de archivo
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
