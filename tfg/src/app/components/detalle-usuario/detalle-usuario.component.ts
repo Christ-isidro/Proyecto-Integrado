@@ -5,10 +5,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ImagenService } from '../../services/imagen.service';
 import { Imagen } from '../../models/imagen';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-detalle-usuario',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './detalle-usuario.component.html',
   styleUrls: ['./detalle-usuario.component.css']
 })
