@@ -67,11 +67,13 @@ export class ImagenService {
   }
 
   ValidarImagen(id_imagen: number, estado: string) {
+    console.log('Validando imagen:', { id_imagen, estado });
     let p = JSON.stringify({
       accion: "ValidarImagen",
       id_imagen: id_imagen,
       estado: estado
     });
+    console.log('Enviando petición:', p);
     return this.http.post<Imagen>(this.url, p);
   }
 

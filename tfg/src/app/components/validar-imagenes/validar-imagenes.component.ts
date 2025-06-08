@@ -38,12 +38,14 @@ export class ValidarImagenesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.params['id'];
+    const id = this.route.snapshot.params['id_imagen'];
     if (!id) {
       console.error('No se proporcionó ID de imagen');
       this.router.navigate(['/imagenes']);
       return;
     }
+
+    console.log('ID de imagen a validar:', id);
 
     this.servicio.ListarImagenes().subscribe({
       next: (imagenes) => {
@@ -54,6 +56,7 @@ export class ValidarImagenesComponent implements OnInit {
 
         const imagen = imagenes.find(img => img.id_imagen === parseInt(id));
         if (imagen) {
+          console.log('Imagen encontrada:', imagen);
           this.imagen = {
             ...imagen,
             titulo: imagen.titulo || 'Sin título',
@@ -74,7 +77,8 @@ export class ValidarImagenesComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.valid) {
+    if (this.form.valid && this.imagen.id_imagen) {
+      console.log('Enviando validación - ID:', this.imagen.id_imagen, 'Estado:', this.form.get('estado')?.value);
       const estado = this.form.get('estado')?.value;
       this.servicio.ValidarImagen(this.imagen.id_imagen, estado).subscribe({
         next: (response) => {
@@ -85,6 +89,8 @@ export class ValidarImagenesComponent implements OnInit {
           console.error('Error al validar la imagen:', error);
         }
       });
+    } else {
+      console.error('Formulario inválido o ID de imagen no disponible');
     }
   }
 
