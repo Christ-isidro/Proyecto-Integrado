@@ -125,6 +125,19 @@ if ($objeto !== null) {
         logError("Acción recibida", (array)$objeto);
         
         switch ($objeto->accion) {
+            case 'IniciarSesion':
+                try {
+                    $resultado = $modelo->IniciarSesion($objeto);
+                    echo json_encode($resultado);
+                } catch (Exception $e) {
+                    http_response_code(400);
+                    echo json_encode([
+                        'success' => false,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+                break;
+
             case 'ListarImagenesAdmitidas':
                 $imagenes = $modelo->ListarImagenesAdmitidas();
                 echo json_encode($imagenes);
@@ -172,11 +185,18 @@ if ($objeto !== null) {
                 break;
 
             default:
-                throw new Exception("Acción no válida");
+                logError("Acción no válida", ['accion' => $objeto->accion]);
+                http_response_code(400);
+                echo json_encode(['error' => 'Acción no válida']);
+                break;
         }
     } catch (Exception $e) {
         logError("Error en la petición: " . $e->getMessage());
         http_response_code(400);
         echo json_encode(['error' => $e->getMessage()]);
     }
+} else {
+    logError("No se recibieron datos válidos");
+    http_response_code(400);
+    echo json_encode(['error' => 'No se recibieron datos válidos']);
 }

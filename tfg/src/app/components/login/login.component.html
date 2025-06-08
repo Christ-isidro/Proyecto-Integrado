@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>\
+    <title>Login - Rally de Asia</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
 </head>
@@ -17,30 +17,54 @@
                 <span class="asia-icon me-2">🔑</span>
                 Iniciar Sesión en el Rally de Asia
             </h2>
+
+            @if (errorMessage) {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+            </div>
+            }
+
             <form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-100">
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <input type="email" class="form-control" formControlName="email" required>
-                    @if (form.controls["email"].invalid && (form.controls["email"].dirty ||
-                    form.controls["email"].touched))
-                    {
-                    <div class="alert alert-danger mt-2">El email es obligatorio</div>
-                    }
+                    <input type="email" 
+                           class="form-control" 
+                           formControlName="email" 
+                           [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+                           placeholder="tu@email.com"
+                           required>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label">Contraseña</label>
-                    <input type="password" class="form-control" formControlName="password" required>
-                    @if (form.controls["password"].invalid && (form.controls["password"].dirty ||
-                    form.controls["password"].touched)) {
-                    <div class="alert alert-danger mt-2">La contraseña es obligatoria</div>
-                    }
+                    <input type="password" 
+                           class="form-control" 
+                           formControlName="password"
+                           [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+                           placeholder="Tu contraseña"
+                           required>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-danger" type="button" (click)="volver()">
-                        <i class="bi bi-arrow-left"></i> Volver
+
+                <div class="d-grid gap-2">
+                    <button type="submit" 
+                            class="btn btn-primary" 
+                            [disabled]="form.invalid || isLoading">
+                        @if (isLoading) {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Iniciando sesión...
+                        } @else {
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        Iniciar Sesión
+                        }
                     </button>
-                    <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+
+                    <button type="button" 
+                            class="btn btn-outline-secondary" 
+                            (click)="volver()"
+                            [disabled]="isLoading">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Volver
                     </button>
                 </div>
             </form>
