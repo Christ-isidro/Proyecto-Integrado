@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Verificar que se proporcionó un nombre de archivo
-if (!isset($_GET['file'])) {
+if (empty($imagePath)) {
     logError("No se proporcionó nombre de archivo");
     http_response_code(400);
     header('Content-Type: application/json');
@@ -28,10 +28,8 @@ if (!isset($_GET['file'])) {
     exit();
 }
 
-// Obtener y sanitizar el nombre del archivo
-$filename = basename($_GET['file']);
-$filepath = __DIR__ . '/uploads/' . $filename;
-
+// Construir la ruta completa del archivo
+$filepath = __DIR__ . '/uploads/' . $imagePath;
 logError("Intentando servir archivo: " . $filepath);
 
 // Verificar que el archivo existe
@@ -67,7 +65,7 @@ $allowed_types = [
     'image/webp' => ['webp']
 ];
 
-$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+$extension = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
 $is_allowed = false;
 
 foreach ($allowed_types as $mime => $exts) {
@@ -86,16 +84,15 @@ if (!$is_allowed) {
     exit();
 }
 
+// Asegurarse de que no hay salida previa
+if (ob_get_level()) ob_end_clean();
+
 // Configurar las cabeceras para la imagen
 header('Content-Type: ' . $mime_type);
 header('Content-Length: ' . filesize($filepath));
 header('Cache-Control: public, max-age=31536000');
 header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 31536000));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', filemtime($filepath)));
-
-// Limpiar cualquier salida anterior
-ob_clean();
-flush();
 
 // Enviar la imagen
 readfile($filepath);
