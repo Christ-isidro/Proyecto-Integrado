@@ -19,7 +19,7 @@ export class ImagenService {
     this.isProduction = window.location.hostname !== 'localhost';
     
     if (this.isProduction) {
-      this.url = 'https://proyecto-integrado.onrender.com/backend';
+      this.url = 'https://proyecto-integrado.onrender.com';
       this.baseImagePath = this.url;
     } else {
       this.url = 'http://localhost/Proyecto%20Integrado/backend';
@@ -44,39 +44,32 @@ export class ImagenService {
 
   getImageUrl(relativePath: string): string {
     if (!relativePath) {
-      console.error('getImageUrl: Ruta vacía');
+      console.warn('getImageUrl called with empty path');
       return '';
     }
     
-    console.log('getImageUrl - Ruta recibida:', relativePath);
+    console.log('getImageUrl input:', relativePath);
 
-    // Si ya es una URL completa, pero es una URL antigua, actualizarla
+    // Si ya es una URL completa, devolverla
     if (relativePath.startsWith('http')) {
-      const fileName = relativePath.split('image=').pop();
-      if (fileName) {
-        console.log('getImageUrl - Extrayendo nombre de archivo de URL antigua:', fileName);
-        return this.constructImageUrl(fileName);
-      }
+      console.log('URL is already complete:', relativePath);
       return relativePath;
     }
 
     // Extraer solo el nombre del archivo
     const fileName = relativePath.split('/').pop();
     if (!fileName) {
-      console.error('getImageUrl - No se pudo extraer el nombre del archivo de:', relativePath);
+      console.warn('No se pudo extraer el nombre del archivo de:', relativePath);
       return '';
     }
 
-    return this.constructImageUrl(fileName);
-  }
-
-  private constructImageUrl(fileName: string): string {
     // Construir la URL usando el endpoint de servir imágenes
     const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName)}`;
     
-    console.log('getImageUrl - URL generada:', {
-      nombreArchivo: fileName,
-      urlCompleta: fullUrl,
+    console.log('Generated image URL:', {
+      originalPath: relativePath,
+      fileName: fileName,
+      fullUrl: fullUrl,
       baseImagePath: this.baseImagePath
     });
 
@@ -84,24 +77,15 @@ export class ImagenService {
   }
 
   ListarImagenes() {
-    console.log('ListarImagenes - Iniciando petición');
-    const data = {
+    let p = JSON.stringify({
       accion: "ListarImagenes"
-    };
-    
-    return this.http.post<Imagen[]>(
-      `${this.url}/servicios.php`,
-      JSON.stringify(data),
-      this.getHttpOptions()
-    ).pipe(
+    });
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
-        console.log('ListarImagenes - Respuesta recibida:', imagenes);
+        console.log('ListarImagenes response:', imagenes);
+        // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
-            console.log('ListarImagenes - Procesando imagen:', {
-              rutaOriginal: img.ruta,
-              urlGenerada: this.getImageUrl(img.ruta)
-            });
             img.ruta = this.getImageUrl(img.ruta);
           }
         });
@@ -160,15 +144,10 @@ export class ImagenService {
       fileType: file.type
     });
 
-    return this.http.post(
-      `${this.url}/servicios.php`,
-      formData,
-      {
-        reportProgress: true,
-        observe: 'events',
-        withCredentials: true
-      }
-    ).pipe(
+    return this.http.post(`${this.url}/servicios.php`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
           const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
@@ -186,9 +165,12 @@ export class ImagenService {
           status: error.status,
           statusText: error.statusText,
           message: error.message,
-          error: error.error
+          error: error.error,
+          url: error.url,
+          headers: error.headers?.keys?.() || [],
+          type: error.type
         });
-        return throwError(() => error);
+        return this.handleError(error);
       })
     );
   }
