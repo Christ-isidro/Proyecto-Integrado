@@ -68,7 +68,7 @@ class Modelo
     {
         try {
             $consulta = "SELECT i.*, u.nombre as nombre_usuario, 
-                        (SELECT COUNT(*) FROM votos v WHERE v.id_imagen = i.id_imagen) as votos 
+                        COALESCE((SELECT COUNT(*) FROM votos v WHERE v.id_imagen = i.id_imagen), 0) as votos 
                         FROM imagenes i 
                         LEFT JOIN usuarios u ON i.id_usuario = u.id 
                         WHERE i.estado = 'admitida' 
@@ -76,7 +76,8 @@ class Modelo
             $resultado = $this->pdo->query($consulta);
             return $resultado->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            die($e->getMessage());
+            error_log("Error en ListarImagenesAdmitidas: " . $e->getMessage());
+            return [];
         }
     }
 
@@ -342,6 +343,10 @@ class Modelo
     public function VotarImagen($id_imagen, $id_usuario)
     {
         try {
+            if (!$id_imagen || !$id_usuario) {
+                return ["success" => false, "message" => "Faltan datos necesarios"];
+            }
+
             // Primero verificamos si el usuario ya votó esta imagen
             $consulta = "SELECT COUNT(*) FROM votos WHERE id_imagen = $1 AND id_usuario = $2";
             $stmt = $this->pdo->prepare($consulta);
@@ -361,19 +366,25 @@ class Modelo
                 return ["success" => false, "message" => "Error al registrar el voto"];
             }
         } catch (Exception $e) {
-            return ["success" => false, "message" => $e->getMessage()];
+            error_log("Error en VotarImagen: " . $e->getMessage());
+            return ["success" => false, "message" => "Error al procesar el voto: " . $e->getMessage()];
         }
     }
 
     public function ObtenerVotosUsuario($id_usuario)
     {
         try {
+            if (!$id_usuario) {
+                return [];
+            }
+
             $consulta = "SELECT id_imagen FROM votos WHERE id_usuario = $1";
             $stmt = $this->pdo->prepare($consulta);
             $stmt->execute([$id_usuario]);
-            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
         } catch (Exception $e) {
-            die($e->getMessage());
+            error_log("Error en ObtenerVotosUsuario: " . $e->getMessage());
+            return [];
         }
     }
 }

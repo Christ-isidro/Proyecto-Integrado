@@ -30,8 +30,12 @@ export class InicioComponent implements OnInit {
     this.imagenService.ListarImagenesAdmitidas().subscribe({
       next: (data) => {
         console.log('Imágenes admitidas:', data);
-        this.imagenesAdmitidas = data;
-        this.imagenesRanking = [...data].sort((a, b) => (b.votos || 0) - (a.votos || 0));
+        this.imagenesAdmitidas = data.map(img => ({
+          ...img,
+          titulo: img.titulo || 'Sin título',
+          votos: img.votos || 0
+        }));
+        this.imagenesRanking = [...this.imagenesAdmitidas].sort((a, b) => (b.votos || 0) - (a.votos || 0));
       },
       error: (error) => {
         console.error("Error al cargar las imágenes admitidas:", error);
@@ -45,12 +49,15 @@ export class InicioComponent implements OnInit {
       this.imagenService.obtenerVotosUsuario(usuario.id).subscribe({
         next: (votos) => {
           console.log('Votos del usuario:', votos);
-          this.votosUsuario = votos;
+          this.votosUsuario = votos || [];
         },
         error: (error) => {
           console.error("Error al cargar los votos del usuario:", error);
+          this.votosUsuario = [];
         }
       });
+    } else {
+      this.votosUsuario = [];
     }
   }
 
@@ -79,13 +86,13 @@ export class InicioComponent implements OnInit {
 
     this.imagenService.votarImagen(id_imagen, usuario.id).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response && response.success) {
           // Actualizar la lista de votos del usuario
           this.cargarVotosUsuario();
           // Recargar las imágenes para actualizar el contador de votos
           this.cargarImagenesAdmitidas();
         } else {
-          alert(response.message);
+          alert(response?.message || 'Error al registrar el voto');
         }
       },
       error: (error) => {
@@ -96,7 +103,7 @@ export class InicioComponent implements OnInit {
   }
 
   yaVotada(id_imagen: number): boolean {
-    return this.votosUsuario.includes(id_imagen);
+    return Array.isArray(this.votosUsuario) && this.votosUsuario.includes(id_imagen);
   }
 
   getImageUrl(ruta: string): string {
