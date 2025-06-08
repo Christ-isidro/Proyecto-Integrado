@@ -75,8 +75,8 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
 
         if ($_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
             $uploadErrors = array(
-                UPLOAD_ERR_INI_SIZE => 'La imagen debe ser menor',
-                UPLOAD_ERR_FORM_SIZE => 'La imagen debe ser menor',
+                UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
+                UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido por el formulario.',
                 UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
                 UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
                 UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
