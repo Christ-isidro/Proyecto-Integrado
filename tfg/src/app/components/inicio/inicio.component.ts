@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ImagenService } from '../../services/imagen.service';
 import { Imagen } from '../../models/imagen';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink],
+  standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './inicio.component.html',
   styleUrls: ['./inicio.component.css']
 })
