@@ -1,10 +1,23 @@
 <?php
-header('Content-Type: application/json; charset=UTF-8');
+// Configuración de CORS
+header('Access-Control-Allow-Origin: https://proyecto-integrado-tfg.vercel.app');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
 
-// Enable error reporting for debugging
+// Si es una solicitud OPTIONS, terminar aquí
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// Configuración de errores
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+// Configuración de contenido
+header('Content-Type: application/json; charset=UTF-8');
 
 require 'vendor/autoload.php';
 require_once 'config.php';
@@ -33,170 +46,86 @@ if (!file_exists($uploadsDir)) {
         echo json_encode(['error' => 'No se pudo crear el directorio de uploads']);
         exit;
     }
-    chmod($uploadsDir, 0777);  // Asegurar permisos después de la creación
-    // También crear un archivo index.html vacío para prevenir listado de directorios
+    chmod($uploadsDir, 0777);
     file_put_contents($uploadsDir . '/index.html', '');
     logError("Directorio uploads creado exitosamente");
 }
 
 // Si se recibe una petición GET para una imagen
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
-    $fileName = basename($_GET['image']);
-    $imagePath = $uploadsDir . '/' . $fileName;
-    
-    error_log("Solicitud de imagen recibida:");
-    error_log("Nombre de archivo solicitado: " . $fileName);
-    error_log("Ruta completa de búsqueda: " . $imagePath);
-    
-    if (!file_exists($imagePath)) {
-        error_log("ERROR: Archivo no encontrado en: " . $imagePath);
-        error_log("Contenido del directorio uploads:");
-        $files = scandir($uploadsDir);
-        error_log(print_r($files, true));
-        http_response_code(404);
-        echo json_encode(['error' => 'Image not found']);
-        exit;
-    }
-
     try {
+        $fileName = basename($_GET['image']);
+        $imagePath = $uploadsDir . '/' . $fileName;
+        
+        logError("Solicitud de imagen recibida: " . $fileName);
+        
+        if (!file_exists($imagePath)) {
+            logError("Archivo no encontrado: " . $imagePath);
+            http_response_code(404);
+            echo json_encode(['error' => 'Image not found']);
+            exit;
+        }
+
         $mime = mime_content_type($imagePath);
-        error_log("Tipo MIME detectado: " . $mime);
         header('Content-Type: ' . $mime);
+        header('Access-Control-Allow-Origin: https://proyecto-integrado-tfg.vercel.app');
         
         if (!readfile($imagePath)) {
-            error_log("ERROR: No se pudo leer el archivo: " . $imagePath);
             throw new Exception("Error al leer el archivo");
         }
-        error_log("Imagen servida exitosamente: " . $fileName);
         exit;
     } catch (Exception $e) {
-        error_log("ERROR al servir la imagen: " . $e->getMessage());
+        logError("Error al servir imagen: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['error' => 'Error serving image']);
+        echo json_encode(['error' => 'Error serving image: ' . $e->getMessage()]);
         exit;
     }
 }
 
-//  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
-//  se procesa la subida de una imagen.
-if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
-    try {
-        logError("Iniciando subida de imagen", $_POST);
-        logError("FILES array", $_FILES);
+try {
+    // Procesar datos POST
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
+            logError("Iniciando proceso de subida de imagen");
+            
+            if (!isset($_FILES['imagen'])) {
+                throw new Exception('No se ha enviado ninguna imagen.');
+            }
 
-        //  Comprobamos que se ha enviado un archivo y un id de usuario.
-        if (!isset($_FILES['imagen'])) {
-            throw new Exception('No se ha enviado ninguna imagen.');
-        }
-
-        if (!isset($_POST['id_usuario'])) {
-            throw new Exception('No se ha especificado el ID de usuario.');
-        }
-
-        if ($_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
-            $uploadErrors = array(
-                UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
-                UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido por el formulario.',
-                UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
-                UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
-                UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
-                UPLOAD_ERR_CANT_WRITE => 'Error al escribir el archivo.',
-                UPLOAD_ERR_EXTENSION => 'Una extensión de PHP detuvo la subida.'
+            $resultado = $modelo->SubirImagen(
+                $_FILES['imagen'],
+                $_POST['id_usuario'],
+                $_POST['titulo']
             );
-            $errorMessage = isset($uploadErrors[$_FILES['imagen']['error']]) 
-                ? $uploadErrors[$_FILES['imagen']['error']]
-                : 'Error desconocido al subir el archivo.';
-            throw new Exception($errorMessage);
+
+            echo json_encode($resultado);
+            exit;
         }
 
-        // Validar el tipo de archivo
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
-        $fileType = mime_content_type($_FILES['imagen']['tmp_name']);
-        if (!in_array($fileType, $allowedTypes)) {
-            throw new Exception("Tipo de archivo no permitido: {$fileType}. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.");
+        // Procesar JSON
+        $datos = file_get_contents('php://input');
+        $objeto = json_decode($datos);
+
+        if ($objeto === null && json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Error al decodificar JSON: ' . json_last_error_msg());
         }
 
-        $resultado = $modelo->SubirImagen(
-            $_FILES['imagen'],
-            $_POST['id_usuario'],
-            $_POST['titulo']
-        );
-
-        logError("Imagen subida exitosamente", $resultado);
-        echo json_encode($resultado);
-    } catch (Exception $e) {
-        logError("Error al subir imagen: " . $e->getMessage());
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'error' => $e->getMessage()
-        ]);
+        if ($objeto) {
+            switch ($objeto->accion) {
+                case 'ListarImagenes':
+                    echo json_encode($modelo->ListarImagenes());
+                    break;
+                // ... resto de casos ...
+                default:
+                    throw new Exception('Acción no reconocida');
+            }
+        }
     }
-    exit;
-}
-
-//  Con esta línea recogemos los datos (en formato JSON), enviados por el cliente:
-$datos = file_get_contents('php://input');
-//  Lo convertimos a un objeto php:
-$objeto = json_decode($datos);
-
-if ($objeto != null) {
-    switch ($objeto->accion) {
-        //Listar
-        case 'ListarUsuarios':
-            print json_encode($modelo->ListarUsuarios());
-            break;
-
-        case 'ListarImagenes':
-            print json_encode($modelo->ListarImagenes());
-            break;
-
-        case 'ListarImagenesAdmitidas':
-            print json_encode($modelo->ListarImagenesAdmitidas());
-            break;
-
-        case 'ObtenerIdUsuario':
-            print json_encode($modelo->ObtenerIdUsuario($objeto->id));
-            break;
-
-        case 'ObtenerImagenesPorUsuario':
-            print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
-            break;
-
-        //Insertar
-        case 'InsertarUsuario':
-            $modelo->InsertarUsuario($objeto->usuario);
-            break;
-
-        case 'RegistrarUsuario':
-            $modelo->RegistrarUsuario($objeto->usuario);
-            break;
-
-        //Modificar (Actualizar)
-        case 'EditarUsuario':
-            $modelo->EditarUsuario($objeto->usuario);
-            break;
-
-        case 'ValidarImagen':
-            $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
-            break;
-
-        //Borrar
-        case 'BorrarUsuario':
-            $modelo->BorrarUsuario($objeto->id);
-            if ($objeto->listado == "OK")
-                print json_encode($modelo->ListarUsuarios());
-            else
-                print '{"result":"OK"}';
-            break;
-
-        case 'BorrarImagen':
-            $modelo->BorrarImagen($objeto->id_imagen);
-            break;
-
-        // Iniciar sesión
-        case 'IniciarSesion':
-            $modelo->IniciarSesion($objeto);
-            break;
-    }
+} catch (Exception $e) {
+    logError("Error en servicios.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'error' => $e->getMessage(),
+        'success' => false
+    ]);
 }

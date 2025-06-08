@@ -270,23 +270,33 @@ class Modelo
     public function SubirImagen($imagen, $id_usuario, $titulo)
     {
         try {
-            error_log("Iniciando SubirImagen - Datos recibidos: " . json_encode([
-                'nombre_archivo' => $imagen['name'],
-                'tipo' => $imagen['type'],
-                'tamaño' => $imagen['size'],
-                'id_usuario' => $id_usuario,
-                'titulo' => $titulo
-            ]));
-
             if (!isset($imagen['tmp_name']) || !is_uploaded_file($imagen['tmp_name'])) {
-                error_log("Error: No se ha subido ningún archivo válido");
                 throw new Exception('No se ha subido ningún archivo válido.');
+            }
+
+            if (!isset($id_usuario)) {
+                throw new Exception('No se ha especificado el ID de usuario.');
+            }
+
+            if ($imagen['error'] !== UPLOAD_ERR_OK) {
+                $uploadErrors = array(
+                    UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por PHP.',
+                    UPLOAD_ERR_FORM_SIZE => 'El archivo excede el tamaño máximo permitido por el formulario.',
+                    UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente.',
+                    UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo.',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Falta la carpeta temporal.',
+                    UPLOAD_ERR_CANT_WRITE => 'Error al escribir el archivo.',
+                    UPLOAD_ERR_EXTENSION => 'Una extensión de PHP detuvo la subida.'
+                );
+                $errorMessage = isset($uploadErrors[$imagen['error']]) 
+                    ? $uploadErrors[$imagen['error']]
+                    : 'Error desconocido al subir el archivo.';
+                throw new Exception($errorMessage);
             }
 
             // Validar el tamaño del archivo
             $maxFileSize = 20 * 1024 * 1024; // 20MB en bytes
             if ($imagen['size'] > $maxFileSize) {
-                error_log("Error: Archivo demasiado grande: " . $imagen['size'] . " bytes");
                 throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
             }
 
@@ -296,13 +306,17 @@ class Modelo
             
             // Asegurarse de que el directorio existe
             if (!file_exists($target_dir)) {
-                error_log("Creando directorio: " . $target_dir);
                 if (!mkdir($target_dir, 0777, true)) {
-                    error_log("Error al crear directorio");
                     throw new Exception('Error al crear el directorio de uploads.');
                 }
                 chmod($target_dir, 0777);
-                error_log("Directorio creado con éxito");
+            }
+
+            // Validar el tipo de archivo
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+            $fileType = mime_content_type($imagen['tmp_name']);
+            if (!in_array($fileType, $allowedTypes)) {
+                throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
             }
 
             // Generar un nombre de archivo único
@@ -310,49 +324,42 @@ class Modelo
             $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
             $target_file = $target_dir . $unique_filename;
             
-            error_log("Intentando mover archivo a: " . $target_file);
-            
-            // Validar el tipo de archivo
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
-            $fileType = mime_content_type($imagen['tmp_name']);
-            if (!in_array($fileType, $allowedTypes)) {
-                error_log("Tipo de archivo no permitido: " . $fileType);
-                throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
-            }
-
-            // Mover el archivo
-            if (!move_uploaded_file($imagen["tmp_name"], $target_file)) {
-                error_log("Error al mover el archivo. Detalles del error: " . error_get_last()['message']);
-                throw new Exception('Error al mover el archivo subido.');
-            }
-
-            error_log("Archivo movido exitosamente");
-            
             // Solo guardamos la ruta relativa en la base de datos
             $ruta_relativa = "uploads/" . $unique_filename;
 
-            error_log("Insertando en base de datos. Ruta relativa: " . $ruta_relativa);
+            // Mover el archivo
+            if (!move_uploaded_file($imagen["tmp_name"], $target_file)) {
+                error_log("Error al mover archivo. Detalles: " . error_get_last()['message']);
+                throw new Exception('Error al mover el archivo subido.');
+            }
 
-            $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente')";
-            $stmt = $this->pdo->prepare($sql);
-            
-            if (!$stmt->execute([$id_usuario, $titulo, $ruta_relativa])) {
-                // Si falla la inserción en la BD, eliminamos el archivo
+            chmod($target_file, 0644);
+
+            try {
+                $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente')";
+                $stmt = $this->pdo->prepare($sql);
+                
+                if (!$stmt->execute([$id_usuario, $titulo, $ruta_relativa])) {
+                    // Si falla la inserción en la BD, eliminamos el archivo
+                    if (file_exists($target_file)) {
+                        unlink($target_file);
+                    }
+                    throw new Exception('Error al guardar en la base de datos');
+                }
+
+                return [
+                    "success" => true, 
+                    "message" => "Imagen subida correctamente",
+                    "ruta" => $ruta_relativa,
+                    "id_imagen" => $this->pdo->lastInsertId()
+                ];
+            } catch (PDOException $e) {
+                // Si hay error en la base de datos, eliminar el archivo
                 if (file_exists($target_file)) {
                     unlink($target_file);
                 }
-                error_log("Error en la inserción en la base de datos");
-                throw new Exception('Error al guardar en la base de datos');
+                throw new Exception('Error en la base de datos: ' . $e->getMessage());
             }
-
-            error_log("Imagen subida y guardada exitosamente");
-
-            return [
-                "success" => true, 
-                "message" => "Imagen subida correctamente",
-                "ruta" => $ruta_relativa,
-                "id_imagen" => $this->pdo->lastInsertId()
-            ];
 
         } catch (Exception $e) {
             error_log("Error en SubirImagen: " . $e->getMessage());
