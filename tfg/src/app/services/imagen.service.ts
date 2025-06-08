@@ -73,19 +73,18 @@ export class ImagenService {
       .replace(/^\/+/, '')  // Eliminar slashes iniciales
       .replace(/\\/g, '/'); // Reemplazar backslashes por forward slashes
 
-    // Si la ruta ya contiene 'uploads', extraer solo el nombre del archivo
+    // Si la ruta ya contiene 'uploads/', extraer solo el nombre del archivo
     if (cleanPath.includes('uploads/')) {
       cleanPath = cleanPath.split('uploads/').pop() || '';
     }
 
-    // Construir la URL completa usando serve-image.php
+    // Construir la URL completa
     const fullUrl = `${this.baseImagePath}/serve-image.php?file=${encodeURIComponent(cleanPath)}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,
       cleanPath: cleanPath,
-      fullUrl: fullUrl,
-      baseImagePath: this.baseImagePath
+      fullUrl: fullUrl
     });
 
     return fullUrl;

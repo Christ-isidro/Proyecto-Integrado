@@ -1,26 +1,57 @@
 <?php
 // Habilitar reporte de errores para depuración
-ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Función para registrar errores
 function logError($message) {
-    error_log(date('Y-m-d H:i:s') . " - " . $message);
+    error_log(date('Y-m-d H:i:s') . " - serve-image.php - " . $message);
 }
 
-// Obtener el nombre del archivo de la URL
-$filename = basename($_SERVER['REQUEST_URI']);
+// Configurar CORS
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Construir la ruta completa al archivo
+// Si es una solicitud OPTIONS, terminar aquí
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// Verificar que se proporcionó un nombre de archivo
+if (!isset($_GET['file'])) {
+    logError("No se proporcionó nombre de archivo");
+    http_response_code(400);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'No file specified']);
+    exit();
+}
+
+// Obtener y sanitizar el nombre del archivo
+$filename = basename($_GET['file']);
 $filepath = __DIR__ . '/uploads/' . $filename;
 
-logError("Attempting to serve image: " . $filepath);
+logError("Intentando servir archivo: " . $filepath);
 
-// Verificar si el archivo existe
+// Verificar que el archivo existe
 if (!file_exists($filepath)) {
-    logError("File not found: " . $filepath);
-    header("HTTP/1.0 404 Not Found");
-    exit("File not found");
+    logError("Archivo no encontrado: " . $filepath);
+    http_response_code(404);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'File not found']);
+    exit();
+}
+
+// Verificar que el archivo está dentro del directorio uploads
+$realpath = realpath($filepath);
+$uploadsDir = realpath(__DIR__ . '/uploads');
+if (strpos($realpath, $uploadsDir) !== 0) {
+    logError("Intento de acceso a archivo fuera del directorio uploads");
+    http_response_code(403);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Access denied']);
+    exit();
 }
 
 // Obtener el tipo MIME del archivo
@@ -28,27 +59,22 @@ $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mime_type = finfo_file($finfo, $filepath);
 finfo_close($finfo);
 
-// Verificar que sea una imagen
-$allowed_types = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp'
-];
-
-if (!in_array($mime_type, $allowed_types)) {
-    logError("Invalid file type: " . $mime_type);
-    header("HTTP/1.0 403 Forbidden");
-    exit("Invalid file type");
+// Verificar que es una imagen
+if (!preg_match('/^image\//', $mime_type)) {
+    logError("Tipo de archivo no permitido: " . $mime_type);
+    http_response_code(403);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Invalid file type']);
+    exit();
 }
 
-// Configurar las cabeceras CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-// Configurar el tipo de contenido
+// Configurar las cabeceras para la imagen
 header('Content-Type: ' . $mime_type);
+header('Content-Length: ' . filesize($filepath));
+header('Cache-Control: public, max-age=31536000');
+header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 31536000));
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', filemtime($filepath)));
 
-// Servir la imagen
-readfile($filepath); 
+// Enviar la imagen
+readfile($filepath);
+exit(); 
