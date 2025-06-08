@@ -175,5 +175,13 @@ if ($objeto != null) {
         case 'IniciarSesion':
             $modelo->IniciarSesion($objeto);
             break;
+
+        case 'VotarImagen':
+            print json_encode($modelo->VotarImagen($objeto->id_imagen, $objeto->id_usuario));
+            break;
+
+        case 'ObtenerVotosUsuario':
+            print json_encode($modelo->ObtenerVotosUsuario($objeto->id_usuario));
+            break;
     }
 }

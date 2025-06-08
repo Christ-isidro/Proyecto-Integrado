@@ -186,6 +186,23 @@ export class ImagenService {
     return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
+  votarImagen(id_imagen: number, id_usuario: number) {
+    let p = JSON.stringify({
+      accion: "VotarImagen",
+      id_imagen: id_imagen,
+      id_usuario: id_usuario
+    });
+    return this.http.post<{success: boolean, message: string}>(`${this.url}/servicios.php`, p);
+  }
+
+  obtenerVotosUsuario(id_usuario: number) {
+    let p = JSON.stringify({
+      accion: "ObtenerVotosUsuario",
+      id_usuario: id_usuario
+    });
+    return this.http.post<number[]>(`${this.url}/servicios.php`, p);
+  }
+
   private handleError(error: HttpErrorResponse) {
     console.error('Error en el servicio de imágenes:', {
       error: error.error,

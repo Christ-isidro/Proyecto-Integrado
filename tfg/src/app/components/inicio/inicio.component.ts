@@ -19,22 +19,39 @@ export class InicioComponent implements OnInit {
   constructor(
     private imagenService: ImagenService, 
     private router: Router,
-  ) {
+  ) { }
+
+  ngOnInit(): void {
+    this.cargarImagenesAdmitidas();
+    this.cargarVotosUsuario();
+  }
+
+  cargarImagenesAdmitidas() {
     this.imagenService.ListarImagenesAdmitidas().subscribe({
       next: (data) => {
-        console.log(data);
+        console.log('Imágenes admitidas:', data);
         this.imagenesAdmitidas = data;
-        // Calcular el ranking de imágenes al cargar las admitidas
-        this.calcularRanking();
-      }
-      , error: (error) => {
+        this.imagenesRanking = [...data].sort((a, b) => (b.votos || 0) - (a.votos || 0));
+      },
+      error: (error) => {
         console.error("Error al cargar las imágenes admitidas:", error);
       }
     });
   }
 
-  ngOnInit(): void {
-    this.cargarVotosUsuario();
+  cargarVotosUsuario() {
+    const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
+    if (usuario && usuario.id) {
+      this.imagenService.obtenerVotosUsuario(usuario.id).subscribe({
+        next: (votos) => {
+          console.log('Votos del usuario:', votos);
+          this.votosUsuario = votos;
+        },
+        error: (error) => {
+          console.error("Error al cargar los votos del usuario:", error);
+        }
+      });
+    }
   }
 
   volverLogin() {
@@ -44,92 +61,46 @@ export class InicioComponent implements OnInit {
   }
 
   miPerfil() {
-    // Obtiene el id del usuario logueado desde localStorage (si existe)
-    const idUsuario = this.idUsuario ? JSON.parse(this.idUsuario).id : null;
-    // Si no hay usuario logueado, muestra un mensaje y no permite acceder al perfil
-    if (!idUsuario) {
+    const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
+    if (!usuario || !usuario.id) {
       alert('Debes iniciar sesión para ver tu perfil');
-      // Redirige al login
       this.router.navigate(['/']);
       return;
     }
-    // Redirige al perfil del usuario
     this.router.navigate(['/perfil']);
   }
 
   votarImagen(id_imagen: number) {
-    // Obtiene el id del usuario logueado desde localStorage (si existe)
-    const idUsuario = this.idUsuario ? JSON.parse(this.idUsuario).id : null;
-    // Si no hay usuario logueado, muestra un mensaje y no permite votar
-    if (!idUsuario) {
+    const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
+    if (!usuario || !usuario.id) {
       alert('Debes iniciar sesión para votar');
       return;
     }
-    // Crea una clave única para guardar los votos de este usuario en localStorage
-    const clave = `votosRally_${idUsuario}`;
-    // Obtiene el array de votos del usuario desde localStorage (o un array vacío si no hay nada)
-    let votos = JSON.parse(localStorage.getItem(clave) || '[]');
-    // Si el usuario no ha votado aún por esta imagen, la añade al array y lo guarda
-    if (!votos.includes(id_imagen)) {
-      votos.push(id_imagen);
-      localStorage.setItem(clave, JSON.stringify(votos));
-    }
-  }
 
-  // Para saber si ya votó una imagen:
-  yaVotada(id_imagen: number): boolean {
-    // Obtiene el id del usuario logueado desde localStorage (si existe)
-    const idUsuario = this.idUsuario ? JSON.parse(this.idUsuario).id : null;
-    // Crea la clave única para este usuario
-    const clave = `votosRally_${idUsuario}`;
-    // Obtiene el array de votos del usuario desde localStorage (o un array vacío si no hay nada)
-    let votos = JSON.parse(localStorage.getItem(clave) || '[]');
-    // Devuelve true si el id de la imagen está en el array de votos, false si no
-    return votos.includes(id_imagen);
-  }
-
-  calcularRanking() {
-    /**
-     * Esta función calcula el ranking de imágenes más votadas.
-     * - Inicializa un contador de votos para cada imagen admitida.
-     * - Recorre todas las claves de localStorage que empiezan por 'votosRally_' (votos de cada usuario).
-     * - Suma los votos de cada imagen (cada usuario puede votar por varias imágenes, pero solo una vez por imagen).
-     * - Añade el campo 'votos' a cada imagen.
-     * - Ordena las imágenes por número de votos de mayor a menor.
-     * - Guarda el top 3 en 'imagenesRanking' (puedes quitar el '.slice(0, 3)' si quieres mostrar todas).
-     */
-    // Inicializa votos en 0 para cada imagen
-    const votosPorImagen: { [id: number]: number } = {};
-    this.imagenesAdmitidas.forEach(img => votosPorImagen[img.id_imagen] = 0);
-
-    // Recorre todas las claves de localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-      const clave = localStorage.key(i);
-      if (clave && clave.startsWith('votosRally_')) {
-        try {
-          const votos: number[] = JSON.parse(localStorage.getItem(clave) || '[]');
-          votos.forEach(idImg => {
-            if (votosPorImagen[idImg] !== undefined) {
-              votosPorImagen[idImg]++;
-            }
-          });
-        } catch { }
+    this.imagenService.votarImagen(id_imagen, usuario.id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          // Actualizar la lista de votos del usuario
+          this.cargarVotosUsuario();
+          // Recargar las imágenes para actualizar el contador de votos
+          this.cargarImagenesAdmitidas();
+        } else {
+          alert(response.message);
+        }
+      },
+      error: (error) => {
+        console.error("Error al votar:", error);
+        alert('Error al registrar el voto');
       }
-    }
+    });
+  }
 
-    // Añade el campo votos a cada imagen y ordena
-    this.imagenesRanking = this.imagenesAdmitidas
-      .map(img => ({ ...img, votos: votosPorImagen[img.id_imagen] || 0 }))
-      .sort((a, b) => b.votos - a.votos)
-      .slice(0, 3); // Top 3, quita esto si quieres mostrar todas
+  yaVotada(id_imagen: number): boolean {
+    return this.votosUsuario.includes(id_imagen);
   }
 
   getImageUrl(ruta: string): string {
     return this.imagenService.getImageUrl(ruta);
-  }
-
-  cargarVotosUsuario() {
-    // Implementa la lógica para cargar los votos del usuario desde localStorage
   }
 
 }

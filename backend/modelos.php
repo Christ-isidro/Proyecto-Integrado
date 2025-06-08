@@ -67,10 +67,14 @@ class Modelo
     public function ListarImagenesAdmitidas()
     {
         try {
-            $consulta = "SELECT imagenes.*, usuarios.nombre AS nombre_usuario FROM imagenes JOIN usuarios ON imagenes.id_usuario = usuarios.id WHERE imagenes.estado = 'admitido'";
-            $stmt = $this->pdo->prepare($consulta);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_OBJ);
+            $consulta = "SELECT i.*, u.nombre as nombre_usuario, 
+                        (SELECT COUNT(*) FROM votos v WHERE v.id_imagen = i.id_imagen) as votos 
+                        FROM imagenes i 
+                        LEFT JOIN usuarios u ON i.id_usuario = u.id 
+                        WHERE i.estado = 'admitida' 
+                        ORDER BY i.id_imagen DESC";
+            $resultado = $this->pdo->query($consulta);
+            return $resultado->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             die($e->getMessage());
         }
@@ -332,6 +336,44 @@ class Modelo
         } catch (Exception $e) {
             error_log("Error en SubirImagen: " . $e->getMessage());
             throw $e;
+        }
+    }
+
+    public function VotarImagen($id_imagen, $id_usuario)
+    {
+        try {
+            // Primero verificamos si el usuario ya votó esta imagen
+            $consulta = "SELECT COUNT(*) FROM votos WHERE id_imagen = $1 AND id_usuario = $2";
+            $stmt = $this->pdo->prepare($consulta);
+            $stmt->execute([$id_imagen, $id_usuario]);
+            $yaVoto = $stmt->fetchColumn() > 0;
+
+            if ($yaVoto) {
+                return ["success" => false, "message" => "Ya has votado esta imagen"];
+            }
+
+            // Si no ha votado, registramos el voto
+            $consulta = "INSERT INTO votos (id_imagen, id_usuario) VALUES ($1, $2) RETURNING id_voto";
+            $stmt = $this->pdo->prepare($consulta);
+            if ($stmt->execute([$id_imagen, $id_usuario])) {
+                return ["success" => true, "message" => "Voto registrado correctamente"];
+            } else {
+                return ["success" => false, "message" => "Error al registrar el voto"];
+            }
+        } catch (Exception $e) {
+            return ["success" => false, "message" => $e->getMessage()];
+        }
+    }
+
+    public function ObtenerVotosUsuario($id_usuario)
+    {
+        try {
+            $consulta = "SELECT id_imagen FROM votos WHERE id_usuario = $1";
+            $stmt = $this->pdo->prepare($consulta);
+            $stmt->execute([$id_usuario]);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
+            die($e->getMessage());
         }
     }
 }
