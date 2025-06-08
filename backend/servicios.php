@@ -3,6 +3,12 @@ header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header("Content-Type: image/jpeg"); // O image/png según el caso
+header("Content-Type: image/jpg"); // O image/png según el caso
+header("Content-Type: image/png"); // O image/png según el caso
+header("Content-Type: image/gif"); // O image/png según el caso
+header("Content-Type: image/webp"); // O image/png según el caso
+
 
 // Enable error reporting for debugging
 ini_set('display_errors', 1);
