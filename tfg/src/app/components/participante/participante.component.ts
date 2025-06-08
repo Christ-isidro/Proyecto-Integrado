@@ -95,4 +95,8 @@ export class ParticipanteComponent implements OnInit {
   editarPerfil(id: number): void {
     this.router.navigate(['/editar-perfil', id]);
   }
+  
+  volver(){
+    this.router.navigate(['/inicio']);
+  }
 }
