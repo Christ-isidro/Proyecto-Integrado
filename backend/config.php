@@ -7,7 +7,7 @@ define('UPLOADS_DIR', BASE_PATH . DIRECTORY_SEPARATOR . 'uploads');
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
 $host = $_SERVER['HTTP_HOST'];
 define('BASE_URL', $protocol . $host);
-define('UPLOADS_URL', '/uploads/');
+define('UPLOADS_URL', 'uploads/');
 
 // Asegurarse de que el directorio uploads existe
 if (!file_exists(UPLOADS_DIR)) {

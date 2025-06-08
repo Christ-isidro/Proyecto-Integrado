@@ -338,7 +338,7 @@ class Modelo
             $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
             $target_file = UPLOADS_DIR . DIRECTORY_SEPARATOR . $unique_filename;
             
-            // Guardar la ruta relativa para la base de datos (usando la constante UPLOADS_URL)
+            // Guardar la ruta relativa para la base de datos
             $ruta_relativa = UPLOADS_URL . $unique_filename;
 
             // Validar el tipo de archivo
