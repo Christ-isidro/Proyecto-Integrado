@@ -4,8 +4,8 @@ import { environment } from '../../environments/environment';
 import { Imagen } from '../models/imagen';
 import { JsonPipe } from '@angular/common';
 import { Usuario } from '../models/usuario';
-import { Observable, throwError, of } from 'rxjs';
-import { catchError, tap, retry, delay } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -28,32 +28,6 @@ export class ImagenService {
     });
   }
 
-  private createHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
-  }
-
-  private handleError(error: HttpErrorResponse) {
-    console.error('Error en el servicio de imágenes:', {
-      error: error.error,
-      status: error.status,
-      message: error.message
-    });
-
-    let errorMessage = 'Ha ocurrido un error desconocido';
-    if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Error del lado del servidor
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-
-    return throwError(() => new Error(errorMessage));
-  }
-
   getImageUrl(relativePath: string): string {
     if (!relativePath) {
       console.warn('getImageUrl called with empty path');
@@ -68,17 +42,29 @@ export class ImagenService {
       return relativePath;
     }
 
-    // Si la ruta no comienza con 'uploads/', añadirlo
-    if (!relativePath.startsWith('uploads/')) {
-      relativePath = 'uploads/' + relativePath;
+    // Si la ruta comienza con /backend/, construir la URL completa
+    if (relativePath.startsWith('/backend/')) {
+      const fullUrl = `${this.baseImagePath}${relativePath}`;
+      console.log('Generated image URL from backend path:', fullUrl);
+      return fullUrl;
     }
 
-    // Construir la URL completa
-    const fullUrl = `${this.baseImagePath}/${relativePath}`;
+    // Para rutas antiguas o diferentes formatos
+    const fileName = relativePath
+      .replace(/^\/+/, '')
+      .replace(/\\/g, '/')
+      .replace(/^(images|uploads)\//, '')
+      .split('/')
+      .pop() || '';
+
+    // Construir la URL usando el endpoint de servir imágenes
+    const fullUrl = `${this.baseImagePath}/backend/uploads/${encodeURIComponent(fileName)}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,
-      fullUrl: fullUrl
+      fileName: fileName,
+      fullUrl: fullUrl,
+      baseImagePath: this.baseImagePath
     });
 
     return fullUrl;
@@ -101,17 +87,15 @@ export class ImagenService {
     );
   }
 
-  ListarImagenesAdmitidas(): Observable<Imagen[]> {
-    const body = JSON.stringify({
+  ListarImagenesAdmitidas() {
+    console.log('Solicitando imágenes admitidas');
+    let p = JSON.stringify({
       accion: "ListarImagenesAdmitidas"
     });
-
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, body, {
-      headers: this.createHeaders()
-    }).pipe(
-      retry(3), // Reintentar hasta 3 veces
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
         console.log('Respuesta de ListarImagenesAdmitidas:', imagenes);
+        // Transformar las URLs de las imágenes
         if (Array.isArray(imagenes)) {
           imagenes.forEach(img => {
             if (img && img.ruta) {
@@ -122,7 +106,10 @@ export class ImagenService {
           console.error('La respuesta no es un array:', imagenes);
         }
       }),
-      catchError(this.handleError)
+      catchError(error => {
+        console.error('Error en ListarImagenesAdmitidas:', error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -164,7 +151,6 @@ export class ImagenService {
       reportProgress: true,
       observe: 'events'
     }).pipe(
-      retry(3),
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
           const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
@@ -177,65 +163,61 @@ export class ImagenService {
           console.log('Respuesta del servidor:', event.body);
         }
       }),
-      catchError(this.handleError)
+      catchError(error => {
+        console.error('Error detallado de subida:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          error: error.error,
+          url: error.url,
+          headers: error.headers?.keys?.() || [],
+          type: error.type
+        });
+        return this.handleError(error);
+      })
     );
   }
 
-  eliminarImagen(id_imagen: number): Observable<any> {
-    const body = JSON.stringify({
+  eliminarImagen(id_imagen: number) {
+    let p = JSON.stringify({
       accion: "BorrarImagen",
       id_imagen: id_imagen
     });
-
-    return this.http.post(`${this.url}/servicios.php`, body, {
-      headers: this.createHeaders()
-    }).pipe(
-      retry(3),
-      catchError(this.handleError)
-    );
+    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
-  ValidarImagen(id_imagen: number, estado: string): Observable<any> {
-    const body = JSON.stringify({
+  ValidarImagen(id_imagen: number, estado: string) {
+    let p = JSON.stringify({
       accion: "ValidarImagen",
       id_imagen: id_imagen,
       estado: estado
     });
-
-    return this.http.post(`${this.url}/servicios.php`, body, {
-      headers: this.createHeaders()
-    }).pipe(
-      retry(3),
-      catchError(this.handleError)
-    );
+    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
   }
 
-  votarImagen(id_imagen: number, id_usuario: number): Observable<any> {
-    const body = JSON.stringify({
+  votarImagen(id_imagen: number, id_usuario: number) {
+    let p = JSON.stringify({
       accion: "VotarImagen",
       id_imagen: id_imagen,
       id_usuario: id_usuario
     });
-
-    return this.http.post(`${this.url}/servicios.php`, body, {
-      headers: this.createHeaders()
-    }).pipe(
-      retry(3),
-      catchError(this.handleError)
-    );
+    return this.http.post<{success: boolean, message: string}>(`${this.url}/servicios.php`, p);
   }
 
-  obtenerVotosUsuario(id_usuario: number): Observable<number[]> {
-    const body = JSON.stringify({
+  obtenerVotosUsuario(id_usuario: number) {
+    let p = JSON.stringify({
       accion: "ObtenerVotosUsuario",
       id_usuario: id_usuario
     });
+    return this.http.post<number[]>(`${this.url}/servicios.php`, p);
+  }
 
-    return this.http.post<number[]>(`${this.url}/servicios.php`, body, {
-      headers: this.createHeaders()
-    }).pipe(
-      retry(3),
-      catchError(this.handleError)
-    );
+  private handleError(error: HttpErrorResponse) {
+    console.error('Error en el servicio de imágenes:', {
+      error: error.error,
+      status: error.status,
+      message: error.message
+    });
+    return throwError(() => error);
   }
 }

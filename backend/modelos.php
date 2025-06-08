@@ -260,57 +260,43 @@ class Modelo
     public function IniciarSesion($datos)
     {
         try {
-            if (!isset($datos->usuario->email) || !isset($datos->usuario->password)) {
-                throw new Exception("Email y contraseña son requeridos");
+            // 1. Busca el usuario por email en la base de datos
+            $sql = "SELECT * FROM usuarios WHERE email = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$datos->email]);
+            $usuario = $stmt->fetch(PDO::FETCH_OBJ);
+
+            // 2. Si el usuario existe y la contraseña es correcta
+            if ($usuario && password_verify($datos->password, $usuario->password)) {
+                // 3. Prepara el payload del JWT con datos del usuario y tiempos de expiración
+                $payload = [
+                    'iat' => time(), // Fecha de emisión
+                    'exp' => time() + (60 * 60 * 24), // Expira en 24 horas
+                    'data' => [
+                        'id' => $usuario->id,
+                        'email' => $usuario->email,
+                        'nombre' => $usuario->nombre,
+                        'rol' => $usuario->rol
+                    ]
+                ];
+
+                // 4. Genera el token JWT usando la clave secreta
+                $jwt = JWT::encode($payload, $this->jwt_key, 'HS256');
+
+                // 5. Devuelve el token y los datos del usuario en formato JSON
+                echo json_encode([
+                    'success' => true,
+                    'token' => $jwt,
+                    'usuario' => $payload['data']
+                ]);
+            } else {
+                // 6. Si no existe el usuario o la contraseña es incorrecta, devuelve error
+                echo json_encode(['success' => false, 'message' => 'Credenciales inválidas']);
             }
-
-            $email = $datos->usuario->email;
-            $password = $datos->usuario->password;
-
-            // Buscar usuario por email
-            $stmt = $this->pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
-            $stmt->execute([$email]);
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$usuario) {
-                throw new Exception("Usuario no encontrado");
-            }
-
-            // Verificar contraseña
-            if (!password_verify($password, $usuario['password'])) {
-                throw new Exception("Contraseña incorrecta");
-            }
-
-            // Generar token JWT
-            require_once 'vendor/autoload.php';
-            $key = "tu_clave_secreta_muy_segura";
-            $payload = array(
-                "id" => $usuario['id'],
-                "email" => $usuario['email'],
-                "rol" => $usuario['rol'],
-                "exp" => time() + (60 * 60) // Token expira en 1 hora
-            );
-
-            $jwt = \Firebase\JWT\JWT::encode($payload, $key, 'HS256');
-
-            // Preparar respuesta
-            $response = array(
-                "success" => true,
-                "message" => "Login exitoso",
-                "token" => $jwt,
-                "usuario" => array(
-                    "id" => $usuario['id'],
-                    "nombre" => $usuario['nombre'],
-                    "email" => $usuario['email'],
-                    "rol" => $usuario['rol']
-                )
-            );
-
-            return $response;
-
         } catch (Exception $e) {
-            error_log("Error en IniciarSesion: " . $e->getMessage());
-            throw new Exception($e->getMessage());
+            // 7. Si ocurre algún error, devuelve error 500 y el mensaje
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 
@@ -352,7 +338,7 @@ class Modelo
             $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
             $target_file = UPLOADS_DIR . DIRECTORY_SEPARATOR . $unique_filename;
             
-            // Guardar la ruta relativa para la base de datos
+            // Guardar la ruta relativa para la base de datos (usando la constante UPLOADS_URL)
             $ruta_relativa = UPLOADS_URL . $unique_filename;
 
             // Validar el tipo de archivo

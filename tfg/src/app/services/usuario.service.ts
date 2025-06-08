@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Usuario } from '../models/usuario';
 import { JsonPipe } from '@angular/common';
 import { getActiveConsumer } from '@angular/core/primitives/signals';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -15,86 +13,58 @@ export class UsuarioService {
 
   constructor(private http: HttpClient) { }
 
-  private createHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
-  }
-
   ListarUsuarios() {
-    const p = JSON.stringify({ accion: 'ListarUsuarios' });
-    return this.http.post<Usuario[]>(`${this.url}/servicios.php`, p, {
-      headers: this.createHeaders()
-    });
+    let p = JSON.stringify({ accion: 'ListarUsuarios' });
+    return this.http.post<Usuario[]>(this.url, p);
   }
 
   ObtenerIdUsuario(id: number) {
-    const p = JSON.stringify({
+    let p = JSON.stringify({
       accion: "ObtenerIdUsuario",
       id: id
     });
-    return this.http.post<Usuario>(`${this.url}/servicios.php`, p, {
-      headers: this.createHeaders()
-    });
+    return this.http.post<Usuario>(this.url, p);
   }
 
   InsertarUsuario(usuario: Usuario) {
-    const p = {
-      accion: 'InsertarUsuario',
-      usuario: usuario
-    };
-    return this.http.post<Usuario[]>(`${this.url}/servicios.php`, JSON.stringify(p), {
-      headers: this.createHeaders()
-    });
+    let p = JSON.parse(JSON.stringify(usuario));
+    p.accion = 'InsertarUsuario';
+    p.usuario = usuario;
+    console.log(p);
+    return this.http.post<Usuario[]>(this.url, JSON.stringify(p));
   }
 
   RegistrarUsuario(usuario: Usuario) {
-    const p = {
-      accion: 'RegistrarUsuario',
-      usuario: usuario
-    };
-    return this.http.post<Usuario[]>(`${this.url}/servicios.php`, JSON.stringify(p), {
-      headers: this.createHeaders()
-    });
+    let p = JSON.parse(JSON.stringify(usuario));
+    p.accion = 'RegistrarUsuario';
+    p.usuario = usuario;
+    console.log(p);
+    return this.http.post<Usuario[]>(this.url, JSON.stringify(p));
   }
 
   EditarUsuario(usuario: Usuario) {
-    const p = {
-      accion: "EditarUsuario",
-      usuario: usuario
-    };
-    return this.http.post<Usuario[]>(`${this.url}/servicios.php`, JSON.stringify(p), {
-      headers: this.createHeaders()
-    });
+    let p = JSON.parse(JSON.stringify(usuario));
+    p.accion = "EditarUsuario";
+    p.usuario = usuario;
+    console.log(p);
+    return this.http.post<Usuario[]>(this.url, JSON.stringify(p));
   }
 
   EliminarUsuario(id: number) {
-    const p = JSON.stringify({
+    let p = JSON.stringify({
       accion: "BorrarUsuario",
       id: id,
       listado: 'OK'
     });
-    return this.http.post<Usuario[]>(`${this.url}/servicios.php`, p, {
-      headers: this.createHeaders()
+    return this.http.post<Usuario[]>(this.url, p);
+  }
+
+  login(email: string, password: string) {
+    return this.http.post<any>(this.url, {
+      accion: 'IniciarSesion',
+      email: email,
+      password: password
     });
   }
 
-  login(email: string, password: string): Observable<any> {
-    const p = JSON.stringify({
-      accion: 'IniciarSesion',
-      usuario: {
-        email: email,
-        password: password
-      }
-    });
-    
-    console.log('Enviando petición de login:', p);
-    
-    return this.http.post<any>(`${this.url}/servicios.php`, p, {
-      headers: this.createHeaders()
-    }).pipe(
-      tap(response => console.log('Respuesta del servidor:', response))
-    );
-  }
 }

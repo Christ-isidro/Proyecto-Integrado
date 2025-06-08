@@ -111,7 +111,6 @@ export class InicioComponent implements OnInit {
     
     if (!this.usuario?.id) {
       alert('Debes iniciar sesión para votar');
-      this.router.navigate(['/']);  
       return;
     }
 

@@ -28,14 +28,4 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     Options Indexes FollowSymLinks
     AllowOverride None
     Require all granted
-</Directory>
-
-# Permitir CORS
-Header set Access-Control-Allow-Origin "*"
-Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
-Header set Access-Control-Allow-Headers "Content-Type, Authorization"
-
-# Redirigir solicitudes de imágenes a serve-image.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^uploads/(.+)\.(jpg|jpeg|png|gif|webp)$ serve-image.php?file=$1.$2 [L,QSA] 
+</Directory> 

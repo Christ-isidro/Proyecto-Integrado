@@ -1,23 +1,38 @@
-Options -Indexes
-RewriteEngine On
+Options +FollowSymLinks -MultiViews
+# Turn off PHP engine
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
 
-# Permitir acceso directo a archivos de imagen
+# Permitir servir archivos estáticos
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+</IfModule>
+
+# Configurar tipos MIME correctos
+<IfModule mod_mime.c>
+    AddType image/jpeg .jpg .jpeg
+    AddType image/png .png
+    AddType image/gif .gif
+    AddType image/webp .webp
+</IfModule>
+
+# Permitir acceso a archivos de imagen
 <FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
     Order Allow,Deny
     Allow from all
+    Require all granted
 </FilesMatch>
 
-# Establecer tipos MIME correctos
-AddType image/jpeg .jpg .jpeg
-AddType image/png .png
-AddType image/gif .gif
-AddType image/webp .webp
+# Headers para CORS
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, OPTIONS"
+    Header set Access-Control-Allow-Headers "*"
+    Header set Cache-Control "max-age=31536000"
+</IfModule>
 
-# Headers de CORS
-Header set Access-Control-Allow-Origin "*"
-Header set Access-Control-Allow-Methods "GET, OPTIONS"
-Header set Access-Control-Allow-Headers "Content-Type"
-
-# Headers de caché
-Header set Cache-Control "public, max-age=31536000"
-Header set Expires "access plus 1 year" 
+# Prevenir listado de directorios
+Options -Indexes 

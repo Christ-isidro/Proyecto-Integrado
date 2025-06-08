@@ -1,39 +1,13 @@
 <?php
-// Habilitar reporte de errores para depuración
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Función para registrar errores
-function logError($message, $data = null) {
-    $logMessage = date('Y-m-d H:i:s') . " - servicios.php - " . $message;
-    if ($data !== null) {
-        $logMessage .= " - Data: " . json_encode($data);
-    }
-    error_log($logMessage);
-}
-
-// Configurar CORS y headers por defecto
+header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Si es una petición de imagen, manejarla con serve-image.php
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && (
-    isset($_GET['image']) || 
-    (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/uploads/') !== false)
-)) {
-    require_once 'serve-image.php';
-    exit();
-}
-
-// Para todas las demás peticiones, usar Content-Type JSON
-header('Content-Type: application/json; charset=UTF-8');
-
-// Si es una solicitud OPTIONS, terminar aquí
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 require 'vendor/autoload.php';
 require_once 'config.php';
@@ -44,24 +18,53 @@ use \Firebase\JWT\Key;
 
 $modelo = new Modelo();
 
+// Log function
+function logError($message, $data = null) {
+    $logMessage = date('Y-m-d H:i:s') . " - " . $message;
+    if ($data !== null) {
+        $logMessage .= " - Data: " . json_encode($data);
+    }
+    error_log($logMessage);
+}
+
 // Asegurarse de que el directorio uploads existe
-if (!file_exists(UPLOADS_DIR)) {
-    if (!mkdir(UPLOADS_DIR, 0777, true)) {
+if (!file_exists('uploads')) {
+    if (!mkdir('uploads', 0777, true)) {
         logError("Error al crear el directorio uploads");
         http_response_code(500);
         echo json_encode(['error' => 'No se pudo crear el directorio de uploads']);
         exit;
     }
-    chmod(UPLOADS_DIR, 0777);
+    chmod('uploads', 0777);  // Asegurar permisos después de la creación
+    // También crear un archivo index.html vacío para prevenir listado de directorios
+    file_put_contents('uploads/index.html', '');
     logError("Directorio uploads creado exitosamente");
 }
 
-// Manejar la subida de imágenes
+// Si se recibe una petición GET para una imagen
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
+    $imagePath = 'uploads/' . basename($_GET['image']);
+    logError("Intentando servir imagen: " . $imagePath);
+    if (file_exists($imagePath)) {
+        $mime = mime_content_type($imagePath);
+        header('Content-Type: ' . $mime);
+        readfile($imagePath);
+        exit;
+    }
+    logError("Imagen no encontrada: " . $imagePath);
+    http_response_code(404);
+    echo json_encode(['error' => 'Image not found']);
+    exit;
+}
+
+//  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
+//  se procesa la subida de una imagen.
 if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
     try {
         logError("Iniciando subida de imagen", $_POST);
         logError("FILES array", $_FILES);
 
+        //  Comprobamos que se ha enviado un archivo y un id de usuario.
         if (!isset($_FILES['imagen'])) {
             throw new Exception('No se ha enviado ninguna imagen.');
         }
@@ -86,6 +89,13 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
             throw new Exception($errorMessage);
         }
 
+        // Validar el tipo de archivo
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+        $fileType = mime_content_type($_FILES['imagen']['tmp_name']);
+        if (!in_array($fileType, $allowedTypes)) {
+            throw new Exception("Tipo de archivo no permitido: {$fileType}. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.");
+        }
+
         $resultado = $modelo->SubirImagen(
             $_FILES['imagen'],
             $_POST['id_usuario'],
@@ -94,7 +104,6 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
 
         logError("Imagen subida exitosamente", $resultado);
         echo json_encode($resultado);
-        exit();
     } catch (Exception $e) {
         logError("Error al subir imagen: " . $e->getMessage());
         http_response_code(400);
@@ -102,52 +111,52 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'SubirImagen') {
             'success' => false,
             'error' => $e->getMessage()
         ]);
-        exit();
     }
+    exit;
 }
 
-// Obtener el raw POST data para otras peticiones
-$rawData = file_get_contents('php://input');
-logError("Raw input data: " . $rawData);
-
-// Convertir a objeto PHP
-$objeto = json_decode($rawData);
-
-if ($objeto === null && json_last_error() !== JSON_ERROR_NONE) {
-    logError("Error al decodificar JSON: " . json_last_error_msg());
-    http_response_code(400);
-    echo json_encode(['error' => 'Datos JSON inválidos: ' . json_last_error_msg()]);
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
     exit();
 }
 
+// Log the request method and content type
+logError("Request Method: " . $_SERVER['REQUEST_METHOD']);
+logError("Content Type: " . $_SERVER['CONTENT_TYPE']);
+
+// Get the raw POST data
+$rawData = file_get_contents('php://input');
+logError("Raw input data: " . $rawData);
+
+//  Convertimos a un objeto php:
+$objeto = json_decode($rawData);
+
 if ($objeto !== null) {
     try {
-        logError("Acción recibida", (array)$objeto);
+        logError("Acción recibida", $objeto);
         
         switch ($objeto->accion) {
-            case 'IniciarSesion':
-                try {
-                    $resultado = $modelo->IniciarSesion($objeto);
-                    echo json_encode($resultado);
-                } catch (Exception $e) {
-                    http_response_code(400);
-                    echo json_encode([
-                        'success' => false,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-                break;
-
             case 'ListarImagenesAdmitidas':
                 $imagenes = $modelo->ListarImagenesAdmitidas();
+                logError("Enviando respuesta ListarImagenesAdmitidas", $imagenes);
                 echo json_encode($imagenes);
                 break;
 
             case 'VotarImagen':
                 if (!isset($objeto->id_imagen) || !isset($objeto->id_usuario)) {
+                    logError("Faltan parámetros necesarios para votar", [
+                        'id_imagen' => $objeto->id_imagen ?? 'no definido',
+                        'id_usuario' => $objeto->id_usuario ?? 'no definido'
+                    ]);
                     throw new Exception("Faltan parámetros necesarios para votar");
                 }
+                logError("Procesando voto", [
+                    'id_imagen' => $objeto->id_imagen,
+                    'id_usuario' => $objeto->id_usuario
+                ]);
                 $resultado = $modelo->VotarImagen($objeto->id_imagen, $objeto->id_usuario);
+                logError("Enviando respuesta VotarImagen", $resultado);
                 echo json_encode($resultado);
                 break;
 
@@ -156,47 +165,80 @@ if ($objeto !== null) {
                     throw new Exception("Falta el ID de usuario");
                 }
                 $votos = $modelo->ObtenerVotosUsuario($objeto->id_usuario);
+                logError("Enviando respuesta ObtenerVotosUsuario", $votos);
                 echo json_encode($votos);
                 break;
 
+            //Listar
             case 'ListarUsuarios':
-                echo json_encode($modelo->ListarUsuarios());
+                print json_encode($modelo->ListarUsuarios());
                 break;
 
             case 'ListarImagenes':
-                echo json_encode($modelo->ListarImagenes());
+                print json_encode($modelo->ListarImagenes());
+                break;
+
+            case 'ListarImagenesAdmitidas':
+                print json_encode($modelo->ListarImagenesAdmitidas());
                 break;
 
             case 'ObtenerIdUsuario':
-                echo json_encode($modelo->ObtenerIdUsuario($objeto->id));
+                print json_encode($modelo->ObtenerIdUsuario($objeto->id));
                 break;
 
             case 'ObtenerImagenesPorUsuario':
-                echo json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
+                print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
+                break;
+
+            //Insertar
+            case 'InsertarUsuario':
+                $modelo->InsertarUsuario($objeto->usuario);
+                break;
+
+            case 'RegistrarUsuario':
+                $modelo->RegistrarUsuario($objeto->usuario);
+                break;
+
+            //Modificar (Actualizar)
+            case 'EditarUsuario':
+                $modelo->EditarUsuario($objeto->usuario);
                 break;
 
             case 'ValidarImagen':
                 $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
-                echo json_encode(['success' => true]);
+                break;
+
+            //Borrar
+            case 'BorrarUsuario':
+                $modelo->BorrarUsuario($objeto->id);
+                if ($objeto->listado == "OK")
+                    print json_encode($modelo->ListarUsuarios());
+                else
+                    print '{"result":"OK"}';
                 break;
 
             case 'BorrarImagen':
                 $modelo->BorrarImagen($objeto->id_imagen);
                 break;
 
+            // Iniciar sesión
+            case 'IniciarSesion':
+                $modelo->IniciarSesion($objeto);
+                break;
+
             default:
-                logError("Acción no válida", ['accion' => $objeto->accion]);
+                logError("Acción no reconocida", $objeto->accion);
                 http_response_code(400);
-                echo json_encode(['error' => 'Acción no válida']);
+                echo json_encode(["error" => "Acción no reconocida"]);
                 break;
         }
     } catch (Exception $e) {
-        logError("Error en la petición: " . $e->getMessage());
-        http_response_code(400);
-        echo json_encode(['error' => $e->getMessage()]);
+        logError("Error en servicios.php: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
     }
 } else {
-    logError("No se recibieron datos válidos");
+    logError("Error decodificando JSON", ["error" => json_last_error_msg()]);
     http_response_code(400);
-    echo json_encode(['error' => 'No se recibieron datos válidos']);
+    echo json_encode(["error" => "Datos JSON inválidos: " . json_last_error_msg()]);
 }
