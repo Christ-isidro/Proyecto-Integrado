@@ -1,73 +1,19 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Imagen } from '../models/imagen';
-import { JsonPipe } from '@angular/common';
-import { Usuario } from '../models/usuario';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImagenService {
   private url: string = environment.apiUrl;
-  private isProduction = window.location.hostname !== 'localhost';
-  private baseImagePath = this.isProduction 
-    ? 'https://proyecto-integrado.onrender.com'
-    : 'http://localhost/Proyecto%20Integrado/backend';
 
   constructor(
     private http: HttpClient
   ) {
-    console.log('ImagenService initialized with:', {
-      url: this.url,
-      isProduction: this.isProduction,
-      hostname: window.location.hostname,
-      baseImagePath: this.baseImagePath
-    });
-  }
-
-  getImageUrl(relativePath: string): string {
-    if (!relativePath) {
-      console.warn('getImageUrl called with empty path');
-      return '';
-    }
-    
-    console.log('getImageUrl input:', relativePath);
-
-    // Si ya es una URL completa, devolverla
-    if (relativePath.startsWith('http')) {
-      console.log('URL is already complete:', relativePath);
-      return relativePath;
-    }
-
-    // Si la ruta comienza con /backend/, construir la URL completa
-    if (relativePath.startsWith('/backend/')) {
-      const fullUrl = `${this.baseImagePath}${relativePath}`;
-      console.log('Generated image URL from backend path:', fullUrl);
-      return fullUrl;
-    }
-
-    // Para rutas antiguas o diferentes formatos
-    const fileName = relativePath
-      .replace(/^\/+/, '')
-      .replace(/\\/g, '/')
-      .replace(/^(images|uploads)\//, '')
-      .split('/')
-      .pop() || '';
-
-    // Construir la URL usando el endpoint de servir imágenes
-    const fullUrl = `${this.baseImagePath}/backend/uploads/${encodeURIComponent(fileName)}`;
-    
-    console.log('Generated image URL:', {
-      originalPath: relativePath,
-      fileName: fileName,
-      fullUrl: fullUrl,
-      baseImagePath: this.baseImagePath
-    });
-
-    return fullUrl;
+    console.log('ImagenService initialized with URL:', this.url);
   }
 
   ListarImagenes() {

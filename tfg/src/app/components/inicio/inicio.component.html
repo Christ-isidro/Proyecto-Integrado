@@ -47,7 +47,8 @@
                     <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
                         <div class="card shadow asia-card w-100">
                             <img [src]="imagen.ruta"
-                                class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
+                                class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}"
+                                onerror="this.src='assets/placeholder.jpg'">
                             <div class="card-body text-center">
                                 <div class="mb-2 fw-semibold" style="color:#b23c17;">
                                     Subida por: {{ imagen.nombre_usuario }}
@@ -79,8 +80,9 @@
                     @for (imagen of imagenesRanking; track $index) {
                     <div class="col-12 col-lg-10 mb-4 d-flex align-items-stretch mx-auto">
                         <div class="card shadow asia-card w-100">
-                            <img [src]="getImageUrl(imagen.ruta)"
-                                class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}">
+                            <img [src]="imagen.ruta"
+                                class="card-img-top asia-img-grande" alt="Imagen de {{ imagen.nombre_usuario }}"
+                                onerror="this.src='assets/placeholder.jpg'">
                             <div class="card-body text-center">
                                 <span class="fw-bold" style="color:#b23c17;">
                                     #{{ $index + 1 }} - {{ imagen.titulo }}

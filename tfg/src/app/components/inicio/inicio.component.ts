@@ -48,17 +48,29 @@ export class InicioComponent implements OnInit {
           return;
         }
 
-        this.imagenesAdmitidas = data.map(img => ({
-          ...img,
-          titulo: img.titulo || 'Sin título',
-          votos: parseInt(img.votos) || 0,
-          ruta: img.ruta || ''
-        }));
+        this.imagenesAdmitidas = data.map(img => {
+          // Verificar si la ruta es base64
+          const ruta = img.ruta || '';
+          console.log('Procesando imagen:', {
+            id: img.id_imagen,
+            titulo: img.titulo,
+            rutaLength: ruta.length,
+            rutaStart: ruta.substring(0, 50) + '...',
+            isBase64: ruta.startsWith('data:image/')
+          });
 
-        console.log('Imágenes procesadas:', this.imagenesAdmitidas);
+          return {
+            ...img,
+            titulo: img.titulo || 'Sin título',
+            votos: parseInt(img.votos) || 0,
+            ruta: ruta
+          };
+        });
+
+        console.log('Imágenes procesadas:', this.imagenesAdmitidas.length);
         this.imagenesRanking = [...this.imagenesAdmitidas]
           .sort((a, b) => (b.votos || 0) - (a.votos || 0));
-        console.log('Ranking generado:', this.imagenesRanking);
+        console.log('Ranking generado:', this.imagenesRanking.length);
       },
       error: (error) => {
         console.error("Error al cargar las imágenes admitidas:", error);

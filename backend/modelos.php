@@ -69,13 +69,11 @@ class Modelo
         try {
             error_log("Iniciando ListarImagenesAdmitidas");
             
-            // Verificar la conexión a la base de datos
             if (!$this->pdo) {
                 error_log("Error: No hay conexión a la base de datos");
                 return [];
             }
 
-            // Primero verificamos si hay imágenes admitidas
             $checkQuery = "SELECT COUNT(*) FROM imagenes WHERE estado IN ('admitida', 'admitido')";
             $count = $this->pdo->query($checkQuery)->fetchColumn();
             error_log("Número de imágenes admitidas encontradas: " . $count);
@@ -85,7 +83,6 @@ class Modelo
                 return [];
             }
             
-            // Consulta adaptada para PostgreSQL y ambos estados posibles
             $consulta = "SELECT i.*, u.nombre as nombre_usuario, 
                         COALESCE((SELECT COUNT(*) FROM votos v WHERE v.id_imagen = i.id_imagen), 0) as votos 
                         FROM imagenes i 
@@ -105,12 +102,12 @@ class Modelo
             $imagenes = $resultado->fetchAll(PDO::FETCH_ASSOC);
             error_log("Imágenes encontradas: " . count($imagenes));
             
-            // Log de cada imagen para debugging
-            foreach ($imagenes as $img) {
+            foreach ($imagenes as &$img) {
                 error_log("Imagen ID: " . $img['id_imagen'] . 
                          ", Usuario: " . $img['nombre_usuario'] . 
                          ", Estado: " . $img['estado'] . 
-                         ", Votos: " . $img['votos']);
+                         ", Votos: " . $img['votos'] .
+                         ", Primeros 100 caracteres de ruta: " . substr($img['ruta'], 0, 100));
             }
             
             return $imagenes;
@@ -336,6 +333,11 @@ class Modelo
             $imageData = file_get_contents($imagen['tmp_name']);
             $base64Image = base64_encode($imageData);
             $base64WithMime = 'data:' . $fileType . ';base64,' . $base64Image;
+
+            error_log("Subiendo imagen - Tipo: " . $fileType . 
+                     ", Tamaño original: " . strlen($imageData) . 
+                     ", Tamaño base64: " . strlen($base64WithMime) . 
+                     ", Primeros 100 caracteres: " . substr($base64WithMime, 0, 100));
 
             // Insertar en la base de datos usando el campo ruta para el base64
             $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente') RETURNING id_imagen";
