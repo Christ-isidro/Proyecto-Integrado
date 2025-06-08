@@ -18,7 +18,10 @@
             </h3>
             <form [formGroup]="form" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
                 <div class="mb-3 text-center">
-                    <label for="imagen" class="form-label w-100">Selecciona una imagen de un lugar de Asia:</label>
+                    <label for="imagen" class="form-label w-100">
+                        Selecciona una imagen de un lugar de Asia
+                        <small class="d-block text-muted">(Tamaño máximo: 5MB)</small>
+                    </label>
                     <input type="file" id="imagen" class="form-control" (change)="onFileSelected($event)" accept="image/*" />
                     @if (form.controls["imagen"].invalid && (form.controls["imagen"].dirty ||
                     form.controls["imagen"].touched)) {
@@ -51,7 +54,8 @@
 
                 @if (uploadError) {
                     <div class="alert alert-danger mb-3">
-                        {{uploadError}}
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span [innerHTML]="uploadError.replace(/\n/g, '<br>')"></span>
                     </div>
                 }
 

@@ -66,10 +66,14 @@ export class SubirImagenesComponent implements OnInit {
         return;
       }
 
-      // Validar el tamaño del archivo (máximo 20MB)
-      const maxSize = 20 * 1024 * 1024; // 20MB en bytes
+      // Validar el tamaño del archivo (máximo 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
       if (this.file.size > maxSize) {
-        this.uploadError = `El archivo es demasiado grande (${(this.file.size / 1024 / 1024).toFixed(2)}MB). El tamaño máximo permitido es 20MB.`;
+        const fileSizeMB = (this.file.size / 1024 / 1024).toFixed(2);
+        this.uploadError = `La imagen es demasiado grande (${fileSizeMB}MB). 
+          Por favor, reduce el tamaño de la imagen a menos de 5MB. 
+          Puedes usar herramientas online como TinyPNG o ImageOptimizer para reducir el tamaño.`;
+        alert(`⚠️ Imagen demasiado grande (${fileSizeMB}MB)\n\nPor favor:\n- Reduce el tamaño a menos de 5MB\n- Usa una herramienta de compresión de imágenes\n- Intenta con una imagen más pequeña`);
         this.file = null;
         input.value = '';
         return;
@@ -88,6 +92,14 @@ export class SubirImagenesComponent implements OnInit {
 
   onSubmit() {
     if (this.form.valid && this.file && this.id_usuario) {
+      // Validar el tamaño nuevamente por seguridad
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (this.file.size > maxSize) {
+        const fileSizeMB = (this.file.size / 1024 / 1024).toFixed(2);
+        this.uploadError = `La imagen es demasiado grande (${fileSizeMB}MB). El tamaño máximo permitido es 5MB.`;
+        return;
+      }
+
       this.uploadError = null;
       this.uploadProgress = 0;
 
