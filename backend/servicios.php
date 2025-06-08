@@ -1,29 +1,18 @@
 <?php
-// Configurar CORS
-$allowed_origins = [
-    'https://proyecto-integrado-rouge.vercel.app',
-    'http://localhost:4200',
-    'http://localhost'
-];
-
-$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-
-if (in_array($origin, $allowed_origins)) {
-    header("Access-Control-Allow-Origin: " . $origin);
-} else {
-    header("Access-Control-Allow-Origin: *");
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Max-Age: 86400');    // Cache preflight para 24 horas
+    header('Content-Length: 0');
+    header('Content-Type: text/plain');
+    exit(0);
 }
 
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json; charset=UTF-8");
-
-// Si es una solicitud OPTIONS (preflight), terminar aquí
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+header('Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Content-Type: application/json; charset=UTF-8');
 
 // Enable error reporting for debugging
 ini_set('display_errors', 1);

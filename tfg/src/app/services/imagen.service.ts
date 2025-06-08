@@ -131,11 +131,7 @@ export class ImagenService {
 
     return this.http.post(`${this.url}/servicios.php`, formData, {
       reportProgress: true,
-      observe: 'events',
-      withCredentials: true,
-      headers: new HttpHeaders({
-        'Accept': 'application/json'
-      })
+      observe: 'events'
     }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
