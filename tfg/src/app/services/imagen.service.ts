@@ -30,48 +30,68 @@ export class ImagenService {
 
   getImageUrl(relativePath: string): string {
     if (!relativePath) {
-      console.warn('getImageUrl called with empty path');
+      console.error('getImageUrl: Ruta vacía');
       return '';
     }
     
-    console.log('getImageUrl input:', relativePath);
+    console.log('getImageUrl - Ruta recibida:', relativePath);
 
     // Si ya es una URL completa, devolverla
     if (relativePath.startsWith('http')) {
-      console.log('URL is already complete:', relativePath);
+      console.log('getImageUrl - URL completa detectada:', relativePath);
       return relativePath;
     }
 
     // Extraer solo el nombre del archivo
     const fileName = relativePath.split('/').pop();
     if (!fileName) {
-      console.warn('No se pudo extraer el nombre del archivo de:', relativePath);
+      console.error('getImageUrl - No se pudo extraer el nombre del archivo de:', relativePath);
       return '';
     }
 
     // Construir la URL usando el endpoint de servir imágenes
     const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName)}`;
     
-    console.log('Generated image URL:', {
-      originalPath: relativePath,
-      fileName: fileName,
-      fullUrl: fullUrl,
+    console.log('getImageUrl - URL generada:', {
+      rutaOriginal: relativePath,
+      nombreArchivo: fileName,
+      urlCompleta: fullUrl,
       baseImagePath: this.baseImagePath
     });
+
+    // Verificar que la URL es accesible
+    fetch(fullUrl)
+      .then(response => {
+        if (!response.ok) {
+          console.error('getImageUrl - Error al acceder a la imagen:', {
+            status: response.status,
+            statusText: response.statusText,
+            url: fullUrl
+          });
+        }
+      })
+      .catch(error => {
+        console.error('getImageUrl - Error de red al verificar la imagen:', error);
+      });
 
     return fullUrl;
   }
 
   ListarImagenes() {
+    console.log('ListarImagenes - Iniciando petición');
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
-        console.log('ListarImagenes response:', imagenes);
+        console.log('ListarImagenes - Respuesta recibida:', imagenes);
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
+            console.log('ListarImagenes - Procesando imagen:', {
+              rutaOriginal: img.ruta,
+              urlGenerada: this.getImageUrl(img.ruta)
+            });
             img.ruta = this.getImageUrl(img.ruta);
           }
         });

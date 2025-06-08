@@ -270,24 +270,39 @@ class Modelo
     public function SubirImagen($imagen, $id_usuario, $titulo)
     {
         try {
+            error_log("Iniciando SubirImagen - Datos recibidos: " . json_encode([
+                'nombre_archivo' => $imagen['name'],
+                'tipo' => $imagen['type'],
+                'tamaño' => $imagen['size'],
+                'id_usuario' => $id_usuario,
+                'titulo' => $titulo
+            ]));
+
             if (!isset($imagen['tmp_name']) || !is_uploaded_file($imagen['tmp_name'])) {
+                error_log("Error: No se ha subido ningún archivo válido");
                 throw new Exception('No se ha subido ningún archivo válido.');
             }
 
             // Validar el tamaño del archivo
             $maxFileSize = 20 * 1024 * 1024; // 20MB en bytes
             if ($imagen['size'] > $maxFileSize) {
+                error_log("Error: Archivo demasiado grande: " . $imagen['size'] . " bytes");
                 throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
             }
 
             // Usar la ruta absoluta del directorio uploads
             $target_dir = __DIR__ . "/uploads/";
+            error_log("Directorio destino: " . $target_dir);
+            
             // Asegurarse de que el directorio existe
             if (!file_exists($target_dir)) {
+                error_log("Creando directorio: " . $target_dir);
                 if (!mkdir($target_dir, 0777, true)) {
+                    error_log("Error al crear directorio");
                     throw new Exception('Error al crear el directorio de uploads.');
                 }
                 chmod($target_dir, 0777);
+                error_log("Directorio creado con éxito");
             }
 
             // Generar un nombre de archivo único
@@ -295,23 +310,28 @@ class Modelo
             $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
             $target_file = $target_dir . $unique_filename;
             
-            // Solo guardamos la ruta relativa en la base de datos
-            $ruta_relativa = "uploads/" . $unique_filename;
-
+            error_log("Intentando mover archivo a: " . $target_file);
+            
             // Validar el tipo de archivo
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
             $fileType = mime_content_type($imagen['tmp_name']);
             if (!in_array($fileType, $allowedTypes)) {
+                error_log("Tipo de archivo no permitido: " . $fileType);
                 throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
             }
 
             // Mover el archivo
             if (!move_uploaded_file($imagen["tmp_name"], $target_file)) {
+                error_log("Error al mover el archivo. Detalles del error: " . error_get_last()['message']);
                 throw new Exception('Error al mover el archivo subido.');
             }
 
-            // Establecer permisos
-            chmod($target_file, 0644);
+            error_log("Archivo movido exitosamente");
+            
+            // Solo guardamos la ruta relativa en la base de datos
+            $ruta_relativa = "uploads/" . $unique_filename;
+
+            error_log("Insertando en base de datos. Ruta relativa: " . $ruta_relativa);
 
             $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente')";
             $stmt = $this->pdo->prepare($sql);
@@ -321,8 +341,11 @@ class Modelo
                 if (file_exists($target_file)) {
                     unlink($target_file);
                 }
+                error_log("Error en la inserción en la base de datos");
                 throw new Exception('Error al guardar en la base de datos');
             }
+
+            error_log("Imagen subida y guardada exitosamente");
 
             return [
                 "success" => true, 

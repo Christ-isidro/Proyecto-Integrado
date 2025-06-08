@@ -41,18 +41,40 @@ if (!file_exists($uploadsDir)) {
 
 // Si se recibe una petición GET para una imagen
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
-    $imagePath = $uploadsDir . '/' . basename($_GET['image']);
-    logError("Intentando servir imagen: " . $imagePath);
-    if (file_exists($imagePath)) {
-        $mime = mime_content_type($imagePath);
-        header('Content-Type: ' . $mime);
-        readfile($imagePath);
+    $fileName = basename($_GET['image']);
+    $imagePath = $uploadsDir . '/' . $fileName;
+    
+    error_log("Solicitud de imagen recibida:");
+    error_log("Nombre de archivo solicitado: " . $fileName);
+    error_log("Ruta completa de búsqueda: " . $imagePath);
+    
+    if (!file_exists($imagePath)) {
+        error_log("ERROR: Archivo no encontrado en: " . $imagePath);
+        error_log("Contenido del directorio uploads:");
+        $files = scandir($uploadsDir);
+        error_log(print_r($files, true));
+        http_response_code(404);
+        echo json_encode(['error' => 'Image not found']);
         exit;
     }
-    logError("Imagen no encontrada: " . $imagePath);
-    http_response_code(404);
-    echo json_encode(['error' => 'Image not found']);
-    exit;
+
+    try {
+        $mime = mime_content_type($imagePath);
+        error_log("Tipo MIME detectado: " . $mime);
+        header('Content-Type: ' . $mime);
+        
+        if (!readfile($imagePath)) {
+            error_log("ERROR: No se pudo leer el archivo: " . $imagePath);
+            throw new Exception("Error al leer el archivo");
+        }
+        error_log("Imagen servida exitosamente: " . $fileName);
+        exit;
+    } catch (Exception $e) {
+        error_log("ERROR al servir la imagen: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(['error' => 'Error serving image']);
+        exit;
+    }
 }
 
 //  Si se recibe una petición POST con el parámetro 'accion' igual a 'SubirImagen',
