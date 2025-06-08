@@ -20,18 +20,15 @@ export class ListaImagenesComponent implements OnInit {
     this.cargarImagenes();
   }
 
-  getImageUrl(ruta: string): string {
-    return this.imagenService.getImageUrl(ruta);
-  }
-
-  volver(): void {
-    this.router.navigate(['/admin']);
-  }
-
   cargarImagenes(): void {
     this.imagenService.ListarImagenes().subscribe({
       next: (data: Imagen[]) => {
-        this.imagenes = data;
+        this.imagenes = data.map(img => ({
+          ...img,
+          titulo: img.titulo || 'Sin título',
+          ruta: img.ruta || '',
+          estado: img.estado || 'pendiente'
+        }));
       },
       error: (error: any) => {
         console.error('Error al cargar imágenes:', error);
@@ -39,7 +36,7 @@ export class ListaImagenesComponent implements OnInit {
     });
   }
 
-  validar(id_imagen: number, estado: string): void {
+  validar(id_imagen: number): void {
     this.router.navigate(['/validar', id_imagen]); 
   }
 
@@ -54,5 +51,9 @@ export class ListaImagenesComponent implements OnInit {
         }
       });
     }
+  }
+
+  getImageUrl(base64String: string): string {
+    return this.imagenService.getImageUrl(base64String);
   }
 }

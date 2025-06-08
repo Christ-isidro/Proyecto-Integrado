@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { Usuario } from '../../models/usuario';
-import { Imagen } from '../../models/imagen';
 import { ImagenService } from '../../services/imagen.service';
+import { Imagen } from '../../models/imagen';
 
 @Component({
   selector: 'app-participante',
@@ -11,26 +10,39 @@ import { ImagenService } from '../../services/imagen.service';
   styleUrls: ['./participante.component.css']
 })
 export class ParticipanteComponent implements OnInit {
-  public usuario: Usuario = <Usuario>{};
-  public imagenes: Imagen[] = [];
+  imagenes: Imagen[] = [];
+  usuario: any;
 
   constructor(
-    private router: Router, 
+    private router: Router,
     private imagenServicio: ImagenService
-  ) { }
-
-  ngOnInit(): void {
-    const usuarioIniciado = localStorage.getItem('usuario');
-    if (usuarioIniciado) {
-      this.usuario = JSON.parse(usuarioIniciado);
-      this.cargarImagenes();
+  ) {
+    const usuarioGuardado = localStorage.getItem('usuario');
+    if (usuarioGuardado) {
+      this.usuario = JSON.parse(usuarioGuardado);
+    } else {
+      this.router.navigate(['/']);
     }
   }
 
+  ngOnInit(): void {
+    this.cargarImagenes();
+  }
+
   cargarImagenes(): void {
+    if (!this.usuario?.id) {
+      console.error('No hay ID de usuario');
+      return;
+    }
+
     this.imagenServicio.ObtenerImagenesPorUsuario(this.usuario.id).subscribe({
       next: (data) => {
-        this.imagenes = data;
+        this.imagenes = data.map(img => ({
+          ...img,
+          titulo: img.titulo || 'Sin título',
+          ruta: img.ruta || '',
+          estado: img.estado || 'pendiente'
+        }));
         console.log("Imágenes cargadas: ", this.imagenes);
       },
       error: (error) => {
@@ -40,41 +52,31 @@ export class ParticipanteComponent implements OnInit {
     });
   }
 
-  irAEditarPerfil() {
-    this.router.navigate(['/editar-perfil', this.usuario.id]);
-  }
-
-  cerrarSesion() {
+  volverLogin() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     this.router.navigate(['/']);
-  }
-
-
-  getImageUrl(ruta: string): string {
-    return this.imagenServicio.getImageUrl(ruta);
-  }
-
-  editarPerfil(id: number): void {
-    this.router.navigate(['/editar-perfil', id]);
   }
 
   subirImagen(id: number): void {
     this.router.navigate(['/subir-imagen', id]);
   }
 
-  eliminarImagen(id: number): void {
-    if (confirm('¿Estás seguro de que quieres borrar esta imagen?')) {
-      this.imagenServicio.eliminarImagen(id).subscribe({
+  eliminarImagen(id_imagen: number): void {
+    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+      this.imagenServicio.eliminarImagen(id_imagen).subscribe({
         next: () => {
           this.cargarImagenes();
-          alert("Imagen eliminada correctamente");
         },
         error: (error) => {
-          console.error("Error al eliminar la imagen: ", error);
-          alert("No se ha podido eliminar la imagen");
+          console.error('Error al eliminar imagen:', error);
+          alert('Error al eliminar la imagen');
         }
       });
-    } 
+    }
+  }
+
+  getImageUrl(base64String: string): string {
+    return this.imagenServicio.getImageUrl(base64String);
   }
 }

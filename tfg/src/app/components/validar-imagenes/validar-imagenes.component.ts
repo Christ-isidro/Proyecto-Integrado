@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
-import { FormGroup, Validators, FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Imagen } from '../../models/imagen';
 import { ImagenService } from '../../services/imagen.service';
+import { Imagen } from '../../models/imagen';
 
 @Component({
   selector: 'app-validar-imagenes',
@@ -10,47 +10,50 @@ import { ImagenService } from '../../services/imagen.service';
   templateUrl: './validar-imagenes.component.html',
   styleUrl: './validar-imagenes.component.css'
 })
-export class ValidarImagenesComponent {
-
-  public imagen: Imagen = <Imagen>{};
-  public form: FormGroup;
+export class ValidarImagenesComponent implements OnInit {
+  form: FormGroup;
+  imagen: Imagen = {
+    id_imagen: 0,
+    titulo: '',
+    id_usuario: 0,
+    ruta: '',
+    estado: 'pendiente'
+  };
 
   constructor(
     private fb: FormBuilder,
-    private ar: ActivatedRoute,
-    private router: Router,
     private servicio: ImagenService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.form = this.fb.group({
       estado: ['', Validators.required]
     });
-
-    let id_imagen = parseInt(this.ar.snapshot.params["id_imagen"]);
   }
 
   ngOnInit() {
-    const id_imagen = this.ar.snapshot.params['id_imagen'];
-
-    console.log('ID de imagen recibido:', id_imagen);
-
-    this.servicio.ListarImagenes().subscribe({
-      next: (imagenes) => {
-        // Busca la imagen por id
-        const encontrada = imagenes.find((img: Imagen) => img.id_imagen == id_imagen);
-        if (encontrada) {
-          this.imagen = encontrada;
-          // Opcional: poner el estado actual en el formulario
-          this.form.patchValue({ estado: this.imagen.estado });
-        } else {
-          alert('Imagen no encontrada');
+    const id = this.route.snapshot.params['id'];
+    if (id) {
+      // Cargar la imagen específica
+      this.servicio.ListarImagenes().subscribe({
+        next: (imagenes) => {
+          const imagenEncontrada = imagenes.find(img => img.id_imagen === parseInt(id));
+          if (imagenEncontrada) {
+            this.imagen = imagenEncontrada;
+            this.form.patchValue({
+              estado: this.imagen.estado
+            });
+          } else {
+            console.error('Imagen no encontrada');
+            this.router.navigate(['/imagenes']);
+          }
+        },
+        error: (error) => {
+          console.error('Error al cargar la imagen:', error);
           this.router.navigate(['/imagenes']);
         }
-      },
-      error: () => {
-        alert('Error al cargar la imagen');
-        this.router.navigate(['/imagenes']);
-      }
-    });
+      });
+    }
   }
 
   onSubmit() {
@@ -70,7 +73,11 @@ export class ValidarImagenesComponent {
     });
   }
 
-  getImageUrl(ruta: string): string {
-    return this.servicio.getImageUrl(ruta);
+  getImageUrl(base64String: string): string {
+    return this.servicio.getImageUrl(base64String);
+  }
+
+  volver() {
+    this.router.navigate(['/imagenes']);
   }
 }

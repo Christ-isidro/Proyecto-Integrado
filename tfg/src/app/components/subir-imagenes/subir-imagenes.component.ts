@@ -1,8 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ImagenService } from '../../services/imagen.service';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UsuarioService } from '../../services/usuario.service';
 import { HttpEventType, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
@@ -20,10 +19,9 @@ export class SubirImagenesComponent implements OnInit {
   uploadError: string | null = null;
 
   constructor(
-    private usuarioService: UsuarioService,
     private imagenService: ImagenService,
     private router: Router,
-    private ar: ActivatedRoute,
+    private route: ActivatedRoute,
     private formBuilder: FormBuilder
   ) {
     this.form = this.formBuilder.group({
@@ -34,7 +32,7 @@ export class SubirImagenesComponent implements OnInit {
 
   ngOnInit() {
     // Obtener el ID del usuario de los parámetros de la ruta
-    const id = this.ar.snapshot.params['id'];
+    const id = this.route.snapshot.params['id'];
     if (id) {
       this.id_usuario = parseInt(id);
     } else {
@@ -78,6 +76,7 @@ export class SubirImagenesComponent implements OnInit {
       this.uploadError = null;
       this.form.get('imagen')?.setValue(this.file);
 
+      // Generar preview como base64
       const reader = new FileReader();
       reader.onload = () => {
         this.previewUrl = reader.result;
