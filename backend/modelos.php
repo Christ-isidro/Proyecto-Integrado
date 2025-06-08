@@ -67,16 +67,32 @@ class Modelo
     public function ListarImagenesAdmitidas()
     {
         try {
+            error_log("Iniciando ListarImagenesAdmitidas");
+            
+            // Consulta adaptada para PostgreSQL y ambos estados posibles
             $consulta = "SELECT i.*, u.nombre as nombre_usuario, 
                         COALESCE((SELECT COUNT(*) FROM votos v WHERE v.id_imagen = i.id_imagen), 0) as votos 
                         FROM imagenes i 
                         LEFT JOIN usuarios u ON i.id_usuario = u.id 
-                        WHERE i.estado = 'admitida' 
+                        WHERE i.estado IN ('admitida', 'admitido') 
                         ORDER BY i.id_imagen DESC";
+            
+            error_log("Ejecutando consulta: " . $consulta);
+            
             $resultado = $this->pdo->query($consulta);
-            return $resultado->fetchAll(PDO::FETCH_ASSOC);
+            if (!$resultado) {
+                error_log("Error en la consulta: " . json_encode($this->pdo->errorInfo()));
+                return [];
+            }
+            
+            $imagenes = $resultado->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Imágenes encontradas: " . count($imagenes));
+            error_log("Datos de imágenes: " . json_encode($imagenes));
+            
+            return $imagenes;
         } catch (Exception $e) {
             error_log("Error en ListarImagenesAdmitidas: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return [];
         }
     }

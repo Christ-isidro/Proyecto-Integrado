@@ -88,18 +88,27 @@ export class ImagenService {
   }
 
   ListarImagenesAdmitidas() {
+    console.log('Solicitando imágenes admitidas');
     let p = JSON.stringify({
       accion: "ListarImagenesAdmitidas"
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
-        console.log('ListarImagenesAdmitidas response:', imagenes);
+        console.log('Respuesta de ListarImagenesAdmitidas:', imagenes);
         // Transformar las URLs de las imágenes
-        imagenes.forEach(img => {
-          if (img.ruta) {
-            img.ruta = this.getImageUrl(img.ruta);
-          }
-        });
+        if (Array.isArray(imagenes)) {
+          imagenes.forEach(img => {
+            if (img && img.ruta) {
+              img.ruta = this.getImageUrl(img.ruta);
+            }
+          });
+        } else {
+          console.error('La respuesta no es un array:', imagenes);
+        }
+      }),
+      catchError(error => {
+        console.error('Error en ListarImagenesAdmitidas:', error);
+        return throwError(() => error);
       })
     );
   }

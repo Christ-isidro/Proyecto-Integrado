@@ -118,70 +118,92 @@ $datos = file_get_contents('php://input');
 $objeto = json_decode($datos);
 
 if ($objeto != null) {
-    switch ($objeto->accion) {
-        //Listar
-        case 'ListarUsuarios':
-            print json_encode($modelo->ListarUsuarios());
-            break;
+    try {
+        error_log("Acción recibida: " . $objeto->accion);
+        
+        switch ($objeto->accion) {
+            case 'ListarImagenesAdmitidas':
+                $imagenes = $modelo->ListarImagenesAdmitidas();
+                error_log("Enviando respuesta ListarImagenesAdmitidas: " . json_encode($imagenes));
+                print json_encode($imagenes);
+                break;
 
-        case 'ListarImagenes':
-            print json_encode($modelo->ListarImagenes());
-            break;
+            case 'VotarImagen':
+                $resultado = $modelo->VotarImagen($objeto->id_imagen, $objeto->id_usuario);
+                error_log("Enviando respuesta VotarImagen: " . json_encode($resultado));
+                print json_encode($resultado);
+                break;
 
-        case 'ListarImagenesAdmitidas':
-            print json_encode($modelo->ListarImagenesAdmitidas());
-            break;
+            case 'ObtenerVotosUsuario':
+                $votos = $modelo->ObtenerVotosUsuario($objeto->id_usuario);
+                error_log("Enviando respuesta ObtenerVotosUsuario: " . json_encode($votos));
+                print json_encode($votos);
+                break;
 
-        case 'ObtenerIdUsuario':
-            print json_encode($modelo->ObtenerIdUsuario($objeto->id));
-            break;
-
-        case 'ObtenerImagenesPorUsuario':
-            print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
-            break;
-
-        //Insertar
-        case 'InsertarUsuario':
-            $modelo->InsertarUsuario($objeto->usuario);
-            break;
-
-        case 'RegistrarUsuario':
-            $modelo->RegistrarUsuario($objeto->usuario);
-            break;
-
-        //Modificar (Actualizar)
-        case 'EditarUsuario':
-            $modelo->EditarUsuario($objeto->usuario);
-            break;
-
-        case 'ValidarImagen':
-            $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
-            break;
-
-        //Borrar
-        case 'BorrarUsuario':
-            $modelo->BorrarUsuario($objeto->id);
-            if ($objeto->listado == "OK")
+            //Listar
+            case 'ListarUsuarios':
                 print json_encode($modelo->ListarUsuarios());
-            else
-                print '{"result":"OK"}';
-            break;
+                break;
 
-        case 'BorrarImagen':
-            $modelo->BorrarImagen($objeto->id_imagen);
-            break;
+            case 'ListarImagenes':
+                print json_encode($modelo->ListarImagenes());
+                break;
 
-        // Iniciar sesión
-        case 'IniciarSesion':
-            $modelo->IniciarSesion($objeto);
-            break;
+            case 'ListarImagenesAdmitidas':
+                print json_encode($modelo->ListarImagenesAdmitidas());
+                break;
 
-        case 'VotarImagen':
-            print json_encode($modelo->VotarImagen($objeto->id_imagen, $objeto->id_usuario));
-            break;
+            case 'ObtenerIdUsuario':
+                print json_encode($modelo->ObtenerIdUsuario($objeto->id));
+                break;
 
-        case 'ObtenerVotosUsuario':
-            print json_encode($modelo->ObtenerVotosUsuario($objeto->id_usuario));
-            break;
+            case 'ObtenerImagenesPorUsuario':
+                print json_encode($modelo->ObtenerImagenesPorUsuario($objeto->id_usuario));
+                break;
+
+            //Insertar
+            case 'InsertarUsuario':
+                $modelo->InsertarUsuario($objeto->usuario);
+                break;
+
+            case 'RegistrarUsuario':
+                $modelo->RegistrarUsuario($objeto->usuario);
+                break;
+
+            //Modificar (Actualizar)
+            case 'EditarUsuario':
+                $modelo->EditarUsuario($objeto->usuario);
+                break;
+
+            case 'ValidarImagen':
+                $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
+                break;
+
+            //Borrar
+            case 'BorrarUsuario':
+                $modelo->BorrarUsuario($objeto->id);
+                if ($objeto->listado == "OK")
+                    print json_encode($modelo->ListarUsuarios());
+                else
+                    print '{"result":"OK"}';
+                break;
+
+            case 'BorrarImagen':
+                $modelo->BorrarImagen($objeto->id_imagen);
+                break;
+
+            // Iniciar sesión
+            case 'IniciarSesion':
+                $modelo->IniciarSesion($objeto);
+                break;
+        }
+    } catch (Exception $e) {
+        error_log("Error en servicios.php: " . $e->getMessage());
+        http_response_code(500);
+        print json_encode(["error" => $e->getMessage()]);
     }
+} else {
+    error_log("No se recibió ningún objeto JSON válido");
+    http_response_code(400);
+    print json_encode(["error" => "No se recibió ningún objeto JSON válido"]);
 }
