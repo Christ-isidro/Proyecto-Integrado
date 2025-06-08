@@ -52,8 +52,8 @@ export class ImagenService {
       cleanPath = cleanPath.split('uploads/').pop() || '';
     }
 
-    // Construir la URL completa
-    const fullUrl = `${this.baseImagePath}/uploads/${encodeURIComponent(cleanPath)}`;
+    // Construir la URL completa usando serve-image.php
+    const fullUrl = `${this.baseImagePath}/serve-image.php?file=${encodeURIComponent(cleanPath)}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,
