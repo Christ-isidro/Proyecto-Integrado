@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: proyecto-integrado
+    env: php
+    buildCommand: ""
+    startCommand: heroku-php-apache2
+    envVars:
+      - key: CORS_ALLOW_ORIGIN
+        value: https://proyecto-integrado-rouge.vercel.app
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: https://proyecto-integrado-rouge.vercel.app
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: GET, POST, OPTIONS
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: Content-Type
+      - path: /*
+        name: Access-Control-Allow-Credentials
+        value: "true" 
