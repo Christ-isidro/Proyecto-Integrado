@@ -6,8 +6,5 @@ services:
       - "8080:80"
     volumes:
       - .:/var/www/html
-    env_file:
-      - backend/.env
     environment:
-      - ENVIRONMENT=production
       - DATABASE_URL=postgres://neondb_owner:npg_h3HgPyqM0kse@ep-withered-pond-a9sxaz90-pooler.gwc.azure.neon.tech/neondb?sslmode=require 
