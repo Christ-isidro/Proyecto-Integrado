@@ -46,7 +46,7 @@ export class ListaImagenesComponent implements OnInit {
   }
 
   validar(id_imagen: number) {
-    this.router.navigate(['/validar-imagen', id_imagen]);
+    this.router.navigate(['/validar', id_imagen]);
   }
 
   eliminarImagen(id_imagen: number) {
