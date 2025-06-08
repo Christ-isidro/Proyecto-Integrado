@@ -55,10 +55,17 @@
                                 <div class="mb-2">
                                     <span class="fw-bold">Título:</span> {{ imagen.titulo }}
                                 </div>
-                                <button class="btn btn-success mt-3 w-100" [disabled]="yaVotada(imagen.id_imagen)"
+                                <button class="btn mt-3 w-100" 
+                                    [class.btn-success]="!yaVotada(imagen.id_imagen)"
+                                    [class.btn-warning]="yaVotada(imagen.id_imagen)"
+                                    [disabled]="cargandoVoto[imagen.id_imagen]"
                                     (click)="votarImagen(imagen.id_imagen)">
-                                    {{ yaVotada(imagen.id_imagen) ? 'Ya votaste' : 'Dar voto' }} <i
-                                        class="bi bi-shift"></i>
+                                    @if (cargandoVoto[imagen.id_imagen]) {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Procesando...
+                                    } @else {
+                                        {{ yaVotada(imagen.id_imagen) ? '⭐ Votado' : '☆ Dar voto' }}
+                                    }
                                 </button>
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 export interface Imagen {
-votos: any;
+    votos?: any;
     nombre_usuario: any | null;
-    id_imagen: number ;
+    id_imagen: number;
     titulo: string;
     id_usuario: number;
     ruta: string;

@@ -166,6 +166,37 @@ if ($objeto != null) {
             $modelo->ValidarImagen($objeto->id_imagen, $objeto->estado);
             break;
 
+        // Nuevos endpoints para votos
+        case 'RegistrarVoto':
+            print json_encode($modelo->RegistrarVoto($objeto->id_usuario, $objeto->id_imagen));
+            break;
+
+        case 'ObtenerVotosImagen':
+            print json_encode($modelo->ObtenerVotosImagen($objeto->id_imagen));
+            break;
+
+        case 'VerificarVotoUsuario':
+            print json_encode($modelo->VerificarVotoUsuario($objeto->id_usuario, $objeto->id_imagen));
+            break;
+
+        case 'ObtenerVotosPorUsuario':
+            print json_encode($modelo->ObtenerVotosPorUsuario($objeto->id_usuario));
+            break;
+
+        case 'ObtenerEstadisticasVotos':
+            print json_encode($modelo->ObtenerEstadisticasVotos());
+            break;
+
+        case 'ObtenerTopImagenes':
+            $limite = isset($objeto->limite) ? $objeto->limite : 5;
+            print json_encode($modelo->ObtenerTopImagenes($limite));
+            break;
+
+        case 'ObtenerVotosRecientes':
+            $limite = isset($objeto->limite) ? $objeto->limite : 10;
+            print json_encode($modelo->ObtenerVotosRecientes($limite));
+            break;
+
         //Borrar
         case 'BorrarUsuario':
             $modelo->BorrarUsuario($objeto->id);
