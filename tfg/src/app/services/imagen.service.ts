@@ -42,22 +42,20 @@ export class ImagenService {
       return relativePath;
     }
 
-    // Limpiar la ruta y obtener solo el nombre del archivo
-    const fileName = relativePath
-      .replace(/^\/+/, '')
-      .replace(/\\/g, '/')
-      .replace(/^(images|uploads)\//, '')
-      .split('/')
-      .pop();
-    
+    // Asegurarse de que la ruta comience con uploads/
+    let fileName = relativePath;
+    if (!fileName.startsWith('uploads/')) {
+      fileName = 'uploads/' + fileName.replace(/^(images|uploads)\//, '');
+    }
+
     // Construir la URL usando el endpoint de servir imágenes
-    const fullUrl = `${this.baseImagePath}/servicios.php?image=${fileName}`;
+    const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName.replace('uploads/', ''))}`;
     
     console.log('Generated image URL:', {
       originalPath: relativePath,
       fileName: fileName,
       fullUrl: fullUrl,
-      isProduction: this.isProduction
+      baseImagePath: this.baseImagePath
     });
 
     return fullUrl;

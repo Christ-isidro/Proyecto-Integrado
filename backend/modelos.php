@@ -281,8 +281,12 @@ class Modelo
             }
 
             $target_dir = "uploads/";
+            // Asegurarse de que el directorio existe
             if (!file_exists($target_dir)) {
-                mkdir($target_dir, 0777, true);
+                if (!mkdir($target_dir, 0777, true)) {
+                    throw new Exception('Error al crear el directorio de uploads.');
+                }
+                chmod($target_dir, 0777);
             }
 
             // Generar un nombre de archivo único
