@@ -383,30 +383,65 @@ class Modelo
     public function VotarImagen($id_imagen, $id_usuario)
     {
         try {
-            if (!$id_imagen || !$id_usuario) {
-                return ["success" => false, "message" => "Faltan datos necesarios"];
+            // Validar que los IDs no sean nulos o 0
+            if (!$id_imagen || !is_numeric($id_imagen) || $id_imagen <= 0) {
+                error_log("ID de imagen inválido: " . var_export($id_imagen, true));
+                return ["success" => false, "message" => "ID de imagen inválido"];
+            }
+            
+            if (!$id_usuario || !is_numeric($id_usuario) || $id_usuario <= 0) {
+                error_log("ID de usuario inválido: " . var_export($id_usuario, true));
+                return ["success" => false, "message" => "ID de usuario inválido"];
             }
 
-            // Primero verificamos si el usuario ya votó esta imagen
-            $consulta = "SELECT COUNT(*) FROM votos WHERE id_imagen = $1 AND id_usuario = $2";
-            $stmt = $this->pdo->prepare($consulta);
-            $stmt->execute([$id_imagen, $id_usuario]);
-            $yaVoto = $stmt->fetchColumn() > 0;
+            // Verificar que la imagen existe
+            $consultaImagen = "SELECT id_imagen FROM imagenes WHERE id_imagen = $1";
+            $stmtImagen = $this->pdo->prepare($consultaImagen);
+            $stmtImagen->execute([$id_imagen]);
+            if (!$stmtImagen->fetch()) {
+                error_log("La imagen no existe: " . $id_imagen);
+                return ["success" => false, "message" => "La imagen no existe"];
+            }
 
-            if ($yaVoto) {
+            // Verificar que el usuario existe
+            $consultaUsuario = "SELECT id FROM usuarios WHERE id = $1";
+            $stmtUsuario = $this->pdo->prepare($consultaUsuario);
+            $stmtUsuario->execute([$id_usuario]);
+            if (!$stmtUsuario->fetch()) {
+                error_log("El usuario no existe: " . $id_usuario);
+                return ["success" => false, "message" => "El usuario no existe"];
+            }
+
+            // Verificar si ya existe el voto
+            $consultaVoto = "SELECT id_voto FROM votos WHERE id_imagen = $1 AND id_usuario = $2";
+            $stmtVoto = $this->pdo->prepare($consultaVoto);
+            $stmtVoto->execute([$id_imagen, $id_usuario]);
+            if ($stmtVoto->fetch()) {
+                error_log("Voto duplicado - Usuario: $id_usuario, Imagen: $id_imagen");
                 return ["success" => false, "message" => "Ya has votado esta imagen"];
             }
 
-            // Si no ha votado, registramos el voto
+            // Insertar el voto
             $consulta = "INSERT INTO votos (id_imagen, id_usuario) VALUES ($1, $2) RETURNING id_voto";
             $stmt = $this->pdo->prepare($consulta);
+            
+            error_log("Intentando insertar voto - Usuario: $id_usuario, Imagen: $id_imagen");
             if ($stmt->execute([$id_imagen, $id_usuario])) {
-                return ["success" => true, "message" => "Voto registrado correctamente"];
+                $id_voto = $stmt->fetchColumn();
+                error_log("Voto registrado exitosamente. ID del voto: " . $id_voto);
+                return [
+                    "success" => true, 
+                    "message" => "Voto registrado correctamente",
+                    "id_voto" => $id_voto
+                ];
             } else {
+                $error = $stmt->errorInfo();
+                error_log("Error al insertar voto: " . json_encode($error));
                 return ["success" => false, "message" => "Error al registrar el voto"];
             }
         } catch (Exception $e) {
             error_log("Error en VotarImagen: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return ["success" => false, "message" => "Error al procesar el voto: " . $e->getMessage()];
         }
     }

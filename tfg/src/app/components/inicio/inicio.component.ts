@@ -99,14 +99,35 @@ export class InicioComponent implements OnInit {
   }
 
   votarImagen(id_imagen: number) {
+    console.log('Intentando votar imagen:', id_imagen);
+    
     const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
     if (!usuario || !usuario.id) {
       alert('Debes iniciar sesión para votar');
       return;
     }
 
-    this.imagenService.votarImagen(id_imagen, usuario.id).subscribe({
+    // Validar que los IDs sean números válidos
+    const idImagenNum = Number(id_imagen);
+    const idUsuarioNum = Number(usuario.id);
+
+    if (isNaN(idImagenNum) || idImagenNum <= 0) {
+      console.error('ID de imagen inválido:', id_imagen);
+      alert('Error: ID de imagen inválido');
+      return;
+    }
+
+    if (isNaN(idUsuarioNum) || idUsuarioNum <= 0) {
+      console.error('ID de usuario inválido:', usuario.id);
+      alert('Error: ID de usuario inválido');
+      return;
+    }
+
+    console.log('Enviando voto - Usuario:', idUsuarioNum, 'Imagen:', idImagenNum);
+
+    this.imagenService.votarImagen(idImagenNum, idUsuarioNum).subscribe({
       next: (response) => {
+        console.log('Respuesta del servidor:', response);
         if (response && response.success) {
           // Actualizar la lista de votos del usuario
           this.cargarVotosUsuario();
@@ -118,7 +139,11 @@ export class InicioComponent implements OnInit {
       },
       error: (error) => {
         console.error("Error al votar:", error);
-        alert('Error al registrar el voto');
+        if (error.error && error.error.message) {
+          alert(error.error.message);
+        } else {
+          alert('Error al registrar el voto');
+        }
       }
     });
   }
