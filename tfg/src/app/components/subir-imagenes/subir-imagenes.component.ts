@@ -66,10 +66,10 @@ export class SubirImagenesComponent implements OnInit {
         return;
       }
 
-      // Validar el tamaño del archivo (máximo 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      // Validar el tamaño del archivo (máximo 20MB)
+      const maxSize = 20 * 1024 * 1024; // 20MB en bytes
       if (this.file.size > maxSize) {
-        this.uploadError = 'El archivo es demasiado grande. El tamaño máximo permitido es 5MB.';
+        this.uploadError = `El archivo es demasiado grande (${(this.file.size / 1024 / 1024).toFixed(2)}MB). El tamaño máximo permitido es 20MB.`;
         this.file = null;
         input.value = '';
         return;

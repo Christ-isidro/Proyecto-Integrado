@@ -4,6 +4,17 @@ services:
     env: php
     buildCommand: composer install
     startCommand: vendor/bin/heroku-php-apache2
+    envVars:
+      - key: PHP_UPLOAD_MAX_FILESIZE
+        value: 20M
+      - key: PHP_POST_MAX_SIZE
+        value: 21M
+      - key: PHP_MEMORY_LIMIT
+        value: 256M
+      - key: PHP_MAX_EXECUTION_TIME
+        value: 300
+      - key: PHP_MAX_INPUT_TIME
+        value: 300
     headers:
       - path: /*
         name: Access-Control-Allow-Origin

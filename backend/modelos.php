@@ -274,6 +274,12 @@ class Modelo
                 throw new Exception('No se ha subido ningún archivo válido.');
             }
 
+            // Validar el tamaño del archivo
+            $maxFileSize = 20 * 1024 * 1024; // 20MB en bytes
+            if ($imagen['size'] > $maxFileSize) {
+                throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
+            }
+
             $target_dir = "uploads/";
             if (!file_exists($target_dir)) {
                 mkdir($target_dir, 0777, true);
