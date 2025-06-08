@@ -280,22 +280,21 @@ class Modelo
                 throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
             }
 
-            $target_dir = "uploads/";
-            // Asegurarse de que el directorio existe
-            if (!file_exists($target_dir)) {
-                if (!mkdir($target_dir, 0777, true)) {
+            // Usar la constante definida en config.php
+            if (!file_exists(UPLOADS_DIR)) {
+                if (!mkdir(UPLOADS_DIR, 0777, true)) {
                     throw new Exception('Error al crear el directorio de uploads.');
                 }
-                chmod($target_dir, 0777);
+                chmod(UPLOADS_DIR, 0777);
             }
 
             // Generar un nombre de archivo único
             $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
             $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
-            $target_file = $target_dir . $unique_filename;
+            $target_file = UPLOADS_DIR . DIRECTORY_SEPARATOR . $unique_filename;
             
-            // Solo guardamos la ruta relativa en la base de datos
-            $ruta_relativa = $target_file;  // uploads/photo_xxxxx.jpg
+            // Guardar la ruta relativa para la base de datos (usando la constante UPLOADS_URL)
+            $ruta_relativa = UPLOADS_URL . $unique_filename;
 
             // Validar el tipo de archivo
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
