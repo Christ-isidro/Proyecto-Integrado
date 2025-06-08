@@ -11,21 +11,20 @@ import { catchError, tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ImagenService {
-  private url = environment.apiUrl;
-  private isProduction = window.location.hostname !== 'localhost';
-  private baseImagePath = this.isProduction 
-    ? 'https://proyecto-integrado.onrender.com'
-    : 'http://localhost/Proyecto%20Integrado/backend';
+  private url: string;
+  private baseImagePath: string;
+  private isProduction: boolean;
 
-  constructor(
-    private http: HttpClient
-  ) {
-    console.log('ImagenService initialized with:', {
-      url: this.url,
-      isProduction: this.isProduction,
-      hostname: window.location.hostname,
-      baseImagePath: this.baseImagePath
-    });
+  constructor(private http: HttpClient) {
+    this.isProduction = window.location.hostname !== 'localhost';
+    
+    if (this.isProduction) {
+      this.url = 'https://proyecto-integrado.onrender.com/backend';
+      this.baseImagePath = this.url;
+    } else {
+      this.url = 'http://localhost/Proyecto%20Integrado/backend';
+      this.baseImagePath = 'http://localhost/Proyecto%20Integrado/backend';
+    }
   }
 
   getImageUrl(relativePath: string): string {
@@ -36,9 +35,13 @@ export class ImagenService {
     
     console.log('getImageUrl - Ruta recibida:', relativePath);
 
-    // Si ya es una URL completa, devolverla
+    // Si ya es una URL completa, pero es una URL antigua, actualizarla
     if (relativePath.startsWith('http')) {
-      console.log('getImageUrl - URL completa detectada:', relativePath);
+      const fileName = relativePath.split('image=').pop();
+      if (fileName) {
+        console.log('getImageUrl - Extrayendo nombre de archivo de URL antigua:', fileName);
+        return this.constructImageUrl(fileName);
+      }
       return relativePath;
     }
 
@@ -49,30 +52,18 @@ export class ImagenService {
       return '';
     }
 
+    return this.constructImageUrl(fileName);
+  }
+
+  private constructImageUrl(fileName: string): string {
     // Construir la URL usando el endpoint de servir imágenes
     const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName)}`;
     
     console.log('getImageUrl - URL generada:', {
-      rutaOriginal: relativePath,
       nombreArchivo: fileName,
       urlCompleta: fullUrl,
       baseImagePath: this.baseImagePath
     });
-
-    // Verificar que la URL es accesible
-    fetch(fullUrl)
-      .then(response => {
-        if (!response.ok) {
-          console.error('getImageUrl - Error al acceder a la imagen:', {
-            status: response.status,
-            statusText: response.statusText,
-            url: fullUrl
-          });
-        }
-      })
-      .catch(error => {
-        console.error('getImageUrl - Error de red al verificar la imagen:', error);
-      });
 
     return fullUrl;
   }
