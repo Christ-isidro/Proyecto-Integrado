@@ -28,14 +28,14 @@ class Modelo
                 $opciones
             );
         } catch (Exception $e) {
-            // Return proper JSON error response
+            error_log("Database connection error: " . $e->getMessage());
             header('Content-Type: application/json');
             http_response_code(500);
-            echo json_encode([
+            die(json_encode([
                 'success' => false,
-                'error' => $e->getMessage()
-            ]);
-            exit;
+                'error' => 'Error de conexión a la base de datos',
+                'details' => $e->getMessage()
+            ]));
         }
     }
 
@@ -72,7 +72,14 @@ class Modelo
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         } catch (Exception $e) {
-            die($e->getMessage());
+            error_log("Error en ListarImagenesAdmitidas: " . $e->getMessage());
+            header('Content-Type: application/json');
+            http_response_code(500);
+            die(json_encode([
+                'success' => false,
+                'error' => 'Error al listar las imágenes',
+                'details' => $e->getMessage()
+            ]));
         }
     }
 
@@ -391,7 +398,13 @@ class Modelo
             return $stmt->fetchAll(PDO::FETCH_COLUMN);
         } catch (Exception $e) {
             error_log("Error en ObtenerVotosPorUsuario: " . $e->getMessage());
-            return [];
+            header('Content-Type: application/json');
+            http_response_code(500);
+            die(json_encode([
+                'success' => false,
+                'error' => 'Error al obtener votos del usuario',
+                'details' => $e->getMessage()
+            ]));
         }
     }
 
