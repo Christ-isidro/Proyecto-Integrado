@@ -48,19 +48,20 @@ export class InicioComponent implements OnInit {
           return;
         }
 
-        this.imagenesAdmitidas = data.map(img => {
-          console.log('Procesando imagen:', img);
-          return {
-            ...img,
-            titulo: img.titulo || 'Sin título',
-            votos: parseInt(img.votos) || 0,
-            ruta: img.ruta || ''
-          };
-        });
+        this.imagenesAdmitidas = data.map(img => ({
+          ...img,
+          titulo: img.titulo || 'Sin título',
+          votos: typeof img.votos === 'string' ? parseInt(img.votos) : (img.votos || 0),
+          ruta: img.ruta || '',
+          nombre_usuario: img.nombre_usuario || 'Anónimo'
+        }));
 
         console.log('Imágenes procesadas:', this.imagenesAdmitidas);
+        
+        // Ordenar por número de votos para el ranking
         this.imagenesRanking = [...this.imagenesAdmitidas]
           .sort((a, b) => (b.votos || 0) - (a.votos || 0));
+        
         console.log('Ranking generado:', this.imagenesRanking);
       },
       error: (error) => {

@@ -54,50 +54,25 @@ export class ImagenService {
     return throwError(() => new Error(errorMessage));
   }
 
-  getImageUrl(relativePath: string): string {
-    if (!relativePath) {
-      console.warn('getImageUrl called with empty path');
-      return '';
+  getImageUrl(base64String: string): string {
+    // Si ya es una cadena base64 completa, devolverla tal cual
+    if (base64String.startsWith('data:image/')) {
+      return base64String;
     }
-    
-    console.log('getImageUrl input:', relativePath);
-
-    // Si ya es una URL completa, devolverla
-    if (relativePath.startsWith('http')) {
-      console.log('URL is already complete:', relativePath);
-      return relativePath;
-    }
-
-    // Si la ruta no comienza con 'uploads/', añadirlo
-    if (!relativePath.startsWith('uploads/')) {
-      relativePath = 'uploads/' + relativePath;
-    }
-
-    // Construir la URL completa
-    const fullUrl = `${this.baseImagePath}/${relativePath}`;
-    
-    console.log('Generated image URL:', {
-      originalPath: relativePath,
-      fullUrl: fullUrl
-    });
-
-    return fullUrl;
+    // Si por alguna razón no es base64, devolver una imagen por defecto
+    return 'assets/images/default.png';
   }
 
-  ListarImagenes() {
-    let p = JSON.stringify({
+  ListarImagenes(): Observable<Imagen[]> {
+    const body = JSON.stringify({
       accion: "ListarImagenes"
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
-      tap(imagenes => {
-        console.log('ListarImagenes response:', imagenes);
-        // Transformar las URLs de las imágenes
-        imagenes.forEach(img => {
-          if (img.ruta) {
-            img.ruta = this.getImageUrl(img.ruta);
-          }
-        });
-      })
+
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, body, {
+      headers: this.createHeaders()
+    }).pipe(
+      retry(3),
+      catchError(this.handleError)
     );
   }
 
@@ -109,38 +84,22 @@ export class ImagenService {
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, body, {
       headers: this.createHeaders()
     }).pipe(
-      retry(3), // Reintentar hasta 3 veces
-      tap(imagenes => {
-        console.log('Respuesta de ListarImagenesAdmitidas:', imagenes);
-        if (Array.isArray(imagenes)) {
-          imagenes.forEach(img => {
-            if (img && img.ruta) {
-              img.ruta = this.getImageUrl(img.ruta);
-            }
-          });
-        } else {
-          console.error('La respuesta no es un array:', imagenes);
-        }
-      }),
+      retry(3),
       catchError(this.handleError)
     );
   }
 
-  ObtenerImagenesPorUsuario(id_usuario: number) {
-    let p = JSON.stringify({
+  ObtenerImagenesPorUsuario(id_usuario: number): Observable<Imagen[]> {
+    const body = JSON.stringify({
       accion: "ObtenerImagenesPorUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
-      tap(imagenes => {
-        console.log('ObtenerImagenesPorUsuario response:', imagenes);
-        // Transformar las URLs de las imágenes
-        imagenes.forEach(img => {
-          if (img.ruta) {
-            img.ruta = this.getImageUrl(img.ruta);
-          }
-        });
-      })
+
+    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, body, {
+      headers: this.createHeaders()
+    }).pipe(
+      retry(3),
+      catchError(this.handleError)
     );
   }
 

@@ -319,27 +319,11 @@ class Modelo
                 throw new Exception('No se ha subido ningún archivo válido.');
             }
 
-            // Validar el tamaño del archivo
-            $maxFileSize = 20 * 1024 * 1024; // 20MB en bytes
+            // Validar el tamaño del archivo (20MB máximo)
+            $maxFileSize = 20 * 1024 * 1024;
             if ($imagen['size'] > $maxFileSize) {
                 throw new Exception('El archivo excede el tamaño máximo permitido de 20MB.');
             }
-
-            // Usar la constante definida en config.php
-            if (!file_exists(UPLOADS_DIR)) {
-                if (!mkdir(UPLOADS_DIR, 0777, true)) {
-                    throw new Exception('Error al crear el directorio de uploads.');
-                }
-                chmod(UPLOADS_DIR, 0777);
-            }
-
-            // Generar un nombre de archivo único
-            $imageFileType = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
-            $unique_filename = "photo_" . uniqid() . "." . $imageFileType;
-            $target_file = UPLOADS_DIR . DIRECTORY_SEPARATOR . $unique_filename;
-            
-            // Guardar la ruta relativa para la base de datos
-            $ruta_relativa = UPLOADS_URL . $unique_filename;
 
             // Validar el tipo de archivo
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
@@ -348,29 +332,39 @@ class Modelo
                 throw new Exception('Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG, GIF y WEBP.');
             }
 
-            // Mover el archivo
-            if (!move_uploaded_file($imagen["tmp_name"], $target_file)) {
-                throw new Exception('Error al mover el archivo subido.');
+            // Leer el archivo y convertirlo a base64
+            $imageData = file_get_contents($imagen['tmp_name']);
+            if ($imageData === false) {
+                throw new Exception('Error al leer el archivo de imagen.');
             }
 
-            // Establecer permisos
-            chmod($target_file, 0644);
+            // Convertir a base64
+            $base64Image = base64_encode($imageData);
+            if ($base64Image === false) {
+                throw new Exception('Error al convertir la imagen a base64.');
+            }
 
-            $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado) VALUES (?, ?, ?, 'pendiente')";
+            // Crear la cadena base64 con el prefijo del tipo MIME
+            $base64String = 'data:' . $fileType . ';base64,' . $base64Image;
+
+            // Insertar en la base de datos
+            $sql = "INSERT INTO imagenes (id_usuario, titulo, ruta, estado, mime_type, nombre_original, updated_at) 
+                   VALUES (?, ?, ?, 'pendiente', ?, ?, CURRENT_TIMESTAMP)";
             $stmt = $this->pdo->prepare($sql);
             
-            if (!$stmt->execute([$id_usuario, $titulo, $ruta_relativa])) {
-                // Si falla la inserción en la BD, eliminamos el archivo
-                if (file_exists($target_file)) {
-                    unlink($target_file);
-                }
+            if (!$stmt->execute([
+                $id_usuario, 
+                $titulo, 
+                $base64String,
+                $fileType,
+                $imagen['name']
+            ])) {
                 throw new Exception('Error al guardar en la base de datos');
             }
 
             return [
                 "success" => true, 
                 "message" => "Imagen subida correctamente",
-                "ruta" => $ruta_relativa,
                 "id_imagen" => $this->pdo->lastInsertId()
             ];
 
