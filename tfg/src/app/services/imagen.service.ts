@@ -11,57 +11,50 @@ import { catchError, tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ImagenService {
-  private url: string;
-  private baseImagePath: string;
-  private isProduction: boolean;
+  private url = environment.apiUrl;
+  private isProduction = window.location.hostname !== 'localhost';
+  private baseImagePath = this.isProduction 
+    ? 'https://proyecto-integrado.onrender.com'
+    : 'http://localhost/Proyecto%20Integrado/backend';
 
-  constructor(private http: HttpClient) {
-    this.isProduction = window.location.hostname !== 'localhost';
-    
-    if (this.isProduction) {
-      this.url = 'https://proyecto-integrado.onrender.com/backend';
-      this.baseImagePath = this.url;
-    } else {
-      this.url = 'http://localhost/Proyecto%20Integrado/backend';
-      this.baseImagePath = 'http://localhost/Proyecto%20Integrado/backend';
-    }
+  constructor(
+    private http: HttpClient
+  ) {
+    console.log('ImagenService initialized with:', {
+      url: this.url,
+      isProduction: this.isProduction,
+      hostname: window.location.hostname,
+      baseImagePath: this.baseImagePath
+    });
   }
 
   getImageUrl(relativePath: string): string {
     if (!relativePath) {
-      console.error('getImageUrl: Ruta vacía');
+      console.warn('getImageUrl called with empty path');
       return '';
     }
     
-    console.log('getImageUrl - Ruta recibida:', relativePath);
+    console.log('getImageUrl input:', relativePath);
 
-    // Si ya es una URL completa, pero es una URL antigua, actualizarla
+    // Si ya es una URL completa, devolverla
     if (relativePath.startsWith('http')) {
-      const fileName = relativePath.split('image=').pop();
-      if (fileName) {
-        console.log('getImageUrl - Extrayendo nombre de archivo de URL antigua:', fileName);
-        return this.constructImageUrl(fileName);
-      }
+      console.log('URL is already complete:', relativePath);
       return relativePath;
     }
 
-    // Extraer solo el nombre del archivo
-    const fileName = relativePath.split('/').pop();
-    if (!fileName) {
-      console.error('getImageUrl - No se pudo extraer el nombre del archivo de:', relativePath);
-      return '';
+    // Asegurarse de que la ruta comience con uploads/
+    let fileName = relativePath;
+    if (!fileName.startsWith('uploads/')) {
+      fileName = 'uploads/' + fileName.replace(/^(images|uploads)\//, '');
     }
 
-    return this.constructImageUrl(fileName);
-  }
-
-  private constructImageUrl(fileName: string): string {
     // Construir la URL usando el endpoint de servir imágenes
-    const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName)}`;
+    const fullUrl = `${this.baseImagePath}/servicios.php?image=${encodeURIComponent(fileName.replace('uploads/', ''))}`;
     
-    console.log('getImageUrl - URL generada:', {
-      nombreArchivo: fileName,
-      urlCompleta: fullUrl,
+    console.log('Generated image URL:', {
+      originalPath: relativePath,
+      fileName: fileName,
+      fullUrl: fullUrl,
       baseImagePath: this.baseImagePath
     });
 
@@ -69,20 +62,15 @@ export class ImagenService {
   }
 
   ListarImagenes() {
-    console.log('ListarImagenes - Iniciando petición');
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
     return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
       tap(imagenes => {
-        console.log('ListarImagenes - Respuesta recibida:', imagenes);
+        console.log('ListarImagenes response:', imagenes);
         // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
-            console.log('ListarImagenes - Procesando imagen:', {
-              rutaOriginal: img.ruta,
-              urlGenerada: this.getImageUrl(img.ruta)
-            });
             img.ruta = this.getImageUrl(img.ruta);
           }
         });
