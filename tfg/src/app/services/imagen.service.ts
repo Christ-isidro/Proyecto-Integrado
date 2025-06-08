@@ -11,7 +11,7 @@ import { catchError, tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ImagenService {
-  private url = environment.apiUrl;
+  private url: string = environment.apiUrl;
   private isProduction = window.location.hostname !== 'localhost';
   private baseImagePath = this.isProduction 
     ? 'https://proyecto-integrado.onrender.com'
@@ -74,17 +74,7 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ListarImagenes"
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
-      tap(imagenes => {
-        console.log('ListarImagenes response:', imagenes);
-        // Transformar las URLs de las imágenes
-        imagenes.forEach(img => {
-          if (img.ruta) {
-            img.ruta = this.getImageUrl(img.ruta);
-          }
-        });
-      })
-    );
+    return this.http.post<Imagen[]>(this.url, p);
   }
 
   ListarImagenesAdmitidas() {
@@ -92,25 +82,7 @@ export class ImagenService {
     let p = JSON.stringify({
       accion: "ListarImagenesAdmitidas"
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
-      tap(imagenes => {
-        console.log('Respuesta de ListarImagenesAdmitidas:', imagenes);
-        // Transformar las URLs de las imágenes
-        if (Array.isArray(imagenes)) {
-          imagenes.forEach(img => {
-            if (img && img.ruta) {
-              img.ruta = this.getImageUrl(img.ruta);
-            }
-          });
-        } else {
-          console.error('La respuesta no es un array:', imagenes);
-        }
-      }),
-      catchError(error => {
-        console.error('Error en ListarImagenesAdmitidas:', error);
-        return throwError(() => error);
-      })
-    );
+    return this.http.post<Imagen[]>(this.url, p);
   }
 
   ObtenerImagenesPorUsuario(id_usuario: number) {
@@ -118,17 +90,7 @@ export class ImagenService {
       accion: "ObtenerImagenesPorUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
-      tap(imagenes => {
-        console.log('ObtenerImagenesPorUsuario response:', imagenes);
-        // Transformar las URLs de las imágenes
-        imagenes.forEach(img => {
-          if (img.ruta) {
-            img.ruta = this.getImageUrl(img.ruta);
-          }
-        });
-      })
-    );
+    return this.http.post<Imagen[]>(this.url, p);
   }
 
   uploadImage(file: File, id_usuario: number, titulo: string): Observable<any> {
@@ -139,7 +101,7 @@ export class ImagenService {
     formData.append('accion', 'SubirImagen');
 
     console.log('Iniciando subida de imagen:', {
-      url: `${this.url}/servicios.php`,
+      url: this.url,
       id_usuario,
       titulo,
       fileName: file.name,
@@ -147,35 +109,7 @@ export class ImagenService {
       fileType: file.type
     });
 
-    return this.http.post(`${this.url}/servicios.php`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
-      tap(event => {
-        if (event.type === HttpEventType.UploadProgress) {
-          const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
-          console.log('Progreso de subida:', {
-            progress: `${progress}%`,
-            loaded: `${(event.loaded / 1024 / 1024).toFixed(2)}MB`,
-            total: event.total ? `${(event.total / 1024 / 1024).toFixed(2)}MB` : 'desconocido'
-          });
-        } else if (event.type === HttpEventType.Response) {
-          console.log('Respuesta del servidor:', event.body);
-        }
-      }),
-      catchError(error => {
-        console.error('Error detallado de subida:', {
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message,
-          error: error.error,
-          url: error.url,
-          headers: error.headers?.keys?.() || [],
-          type: error.type
-        });
-        return this.handleError(error);
-      })
-    );
+    return this.http.post(this.url, formData);
   }
 
   eliminarImagen(id_imagen: number) {
@@ -183,7 +117,7 @@ export class ImagenService {
       accion: "BorrarImagen",
       id_imagen: id_imagen
     });
-    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
+    return this.http.post(this.url, p);
   }
 
   ValidarImagen(id_imagen: number, estado: string) {
@@ -192,7 +126,7 @@ export class ImagenService {
       id_imagen: id_imagen,
       estado: estado
     });
-    return this.http.post<Imagen>(`${this.url}/servicios.php`, p);
+    return this.http.post<Imagen>(this.url, p);
   }
 
   votarImagen(id_imagen: number, id_usuario: number) {
@@ -201,7 +135,7 @@ export class ImagenService {
       id_imagen: id_imagen,
       id_usuario: id_usuario
     });
-    return this.http.post<{success: boolean, message: string}>(`${this.url}/servicios.php`, p);
+    return this.http.post<{success: boolean, message: string}>(this.url, p);
   }
 
   obtenerVotosUsuario(id_usuario: number) {
@@ -209,7 +143,7 @@ export class ImagenService {
       accion: "ObtenerVotosUsuario",
       id_usuario: id_usuario
     });
-    return this.http.post<number[]>(`${this.url}/servicios.php`, p);
+    return this.http.post<number[]>(this.url, p);
   }
 
   private handleError(error: HttpErrorResponse) {

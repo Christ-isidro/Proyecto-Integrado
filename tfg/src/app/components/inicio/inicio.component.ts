@@ -48,15 +48,12 @@ export class InicioComponent implements OnInit {
           return;
         }
 
-        this.imagenesAdmitidas = data.map(img => {
-          console.log('Procesando imagen:', img);
-          return {
-            ...img,
-            titulo: img.titulo || 'Sin título',
-            votos: parseInt(img.votos) || 0,
-            ruta: img.ruta || ''
-          };
-        });
+        this.imagenesAdmitidas = data.map(img => ({
+          ...img,
+          titulo: img.titulo || 'Sin título',
+          votos: parseInt(img.votos) || 0,
+          ruta: img.ruta || ''
+        }));
 
         console.log('Imágenes procesadas:', this.imagenesAdmitidas);
         this.imagenesRanking = [...this.imagenesAdmitidas]
