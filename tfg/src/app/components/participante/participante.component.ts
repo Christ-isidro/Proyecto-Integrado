@@ -4,13 +4,9 @@ import { ImagenService } from '../../services/imagen.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { Imagen } from '../../models/imagen';
 import { Usuario } from '../../models/usuario';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-participante',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
   templateUrl: './participante.component.html',
   styleUrls: ['./participante.component.css']
 })
@@ -94,6 +90,7 @@ export class ParticipanteComponent implements OnInit {
     localStorage.removeItem('usuario');
     this.router.navigate(['/']);
   }
+
 
   editarPerfil(id: number): void {
     this.router.navigate(['/editar-perfil', id]);

@@ -2,13 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ImagenService } from '../../services/imagen.service';
 import { Router } from '@angular/router';
 import { Imagen } from '../../models/imagen';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-lista-imagenes',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
   templateUrl: './lista-imagenes.component.html',
   styleUrls: ['./lista-imagenes.component.css']
 })
