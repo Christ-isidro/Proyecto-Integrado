@@ -25,6 +25,21 @@ export class ImagenService {
       this.url = 'http://localhost/Proyecto%20Integrado/backend';
       this.baseImagePath = 'http://localhost/Proyecto%20Integrado/backend';
     }
+
+    console.log('ImagenService initialized:', {
+      isProduction: this.isProduction,
+      url: this.url,
+      baseImagePath: this.baseImagePath
+    });
+  }
+
+  private getHttpOptions() {
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      }),
+      withCredentials: true
+    };
   }
 
   getImageUrl(relativePath: string): string {
@@ -70,13 +85,17 @@ export class ImagenService {
 
   ListarImagenes() {
     console.log('ListarImagenes - Iniciando petición');
-    let p = JSON.stringify({
+    const data = {
       accion: "ListarImagenes"
-    });
-    return this.http.post<Imagen[]>(`${this.url}/servicios.php`, p).pipe(
+    };
+    
+    return this.http.post<Imagen[]>(
+      `${this.url}/servicios.php`,
+      JSON.stringify(data),
+      this.getHttpOptions()
+    ).pipe(
       tap(imagenes => {
         console.log('ListarImagenes - Respuesta recibida:', imagenes);
-        // Transformar las URLs de las imágenes
         imagenes.forEach(img => {
           if (img.ruta) {
             console.log('ListarImagenes - Procesando imagen:', {
@@ -141,10 +160,15 @@ export class ImagenService {
       fileType: file.type
     });
 
-    return this.http.post(`${this.url}/servicios.php`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
+    return this.http.post(
+      `${this.url}/servicios.php`,
+      formData,
+      {
+        reportProgress: true,
+        observe: 'events',
+        withCredentials: true
+      }
+    ).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
           const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
@@ -162,12 +186,9 @@ export class ImagenService {
           status: error.status,
           statusText: error.statusText,
           message: error.message,
-          error: error.error,
-          url: error.url,
-          headers: error.headers?.keys?.() || [],
-          type: error.type
+          error: error.error
         });
-        return this.handleError(error);
+        return throwError(() => error);
       })
     );
   }
