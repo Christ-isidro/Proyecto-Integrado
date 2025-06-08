@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Imagen } from '../models/imagen';
 import { JsonPipe } from '@angular/common';
@@ -131,16 +131,16 @@ export class ImagenService {
 
     return this.http.post(`${this.url}/servicios.php`, formData, {
       reportProgress: true,
-      observe: 'events'
+      observe: 'events',
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Accept': 'application/json'
+      })
     }).pipe(
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
           const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
-          console.log('Upload progress:', { 
-            loaded: event.loaded,
-            total: event.total,
-            progress: progress + '%'
-          });
+          console.log('Upload progress:', progress + '%');
         } else if (event.type === HttpEventType.Response) {
           console.log('Upload complete response:', event.body);
         }
