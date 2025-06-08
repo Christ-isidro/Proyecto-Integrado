@@ -91,6 +91,13 @@ export class SubirImagenesComponent implements OnInit {
       this.uploadError = null;
       this.uploadProgress = 0;
 
+      // Validar el tamaño antes de intentar subir
+      const maxSize = 10 * 1024 * 1024; // 10MB en bytes
+      if (this.file.size > maxSize) {
+        this.uploadError = 'El archivo es demasiado grande. El tamaño máximo permitido es 10MB.';
+        return;
+      }
+
       console.log('Iniciando subida de imagen:', {
         fileName: this.file.name,
         fileSize: this.file.size,
@@ -119,16 +126,16 @@ export class SubirImagenesComponent implements OnInit {
         error: (error: HttpErrorResponse) => {
           console.error('Error al subir imagen:', error);
           if (error.error?.error) {
-            this.uploadError = error.error.error;
+            this.uploadError = `Error al subir la imagen: ${error.error.error}`;
           } else if (error.message) {
-            this.uploadError = error.message;
+            this.uploadError = `Error al subir la imagen: ${error.message}`;
           } else {
-            this.uploadError = 'Error desconocido al subir la imagen';
+            this.uploadError = 'Error desconocido al subir la imagen. Por favor, intenta con una imagen más pequeña o en un formato diferente.';
           }
         }
       });
     } else {
-      this.uploadError = 'Por favor, completa todos los campos requeridos.';
+      this.uploadError = 'Por favor, completa todos los campos requeridos y selecciona una imagen válida.';
     }
   }
 
