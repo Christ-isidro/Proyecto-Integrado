@@ -1,17 +1,4 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app');
-    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-    header('Access-Control-Max-Age: 86400');    // Cache preflight para 24 horas
-    header('Content-Length: 0');
-    header('Content-Type: text/plain');
-    exit(0);
-}
-
-header('Access-Control-Allow-Origin: https://proyecto-integrado-rouge.vercel.app');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Content-Type: application/json; charset=UTF-8');
 
 // Enable error reporting for debugging

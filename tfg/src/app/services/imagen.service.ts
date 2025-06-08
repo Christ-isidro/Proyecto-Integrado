@@ -122,11 +122,13 @@ export class ImagenService {
     formData.append('titulo', titulo);
     formData.append('accion', 'SubirImagen');
 
-    console.log('Uploading image with data:', {
+    console.log('Iniciando subida de imagen:', {
+      url: `${this.url}/servicios.php`,
       id_usuario,
       titulo,
       fileName: file.name,
-      fileSize: file.size
+      fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+      fileType: file.type
     });
 
     return this.http.post(`${this.url}/servicios.php`, formData, {
@@ -136,13 +138,25 @@ export class ImagenService {
       tap(event => {
         if (event.type === HttpEventType.UploadProgress) {
           const progress = Math.round(100 * event.loaded / (event.total || event.loaded));
-          console.log('Upload progress:', progress + '%');
+          console.log('Progreso de subida:', {
+            progress: `${progress}%`,
+            loaded: `${(event.loaded / 1024 / 1024).toFixed(2)}MB`,
+            total: event.total ? `${(event.total / 1024 / 1024).toFixed(2)}MB` : 'desconocido'
+          });
         } else if (event.type === HttpEventType.Response) {
-          console.log('Upload complete response:', event.body);
+          console.log('Respuesta del servidor:', event.body);
         }
       }),
       catchError(error => {
-        console.error('Upload error:', error);
+        console.error('Error detallado de subida:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          error: error.error,
+          url: error.url,
+          headers: error.headers?.keys?.() || [],
+          type: error.type
+        });
         return this.handleError(error);
       })
     );
@@ -166,17 +180,11 @@ export class ImagenService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    console.error('Image service error:', error);
-    let errorMessage = 'Ha ocurrido un error con la imagen.';
-
-    if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Error del lado del servidor
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-
-    return throwError(() => new Error(errorMessage));
+    console.error('Error en el servicio de imágenes:', {
+      error: error.error,
+      status: error.status,
+      message: error.message
+    });
+    return throwError(() => error);
   }
 }
