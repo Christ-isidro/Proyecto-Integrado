@@ -59,8 +59,26 @@ $finfo = finfo_open(FILEINFO_MIME_TYPE);
 $mime_type = finfo_file($finfo, $filepath);
 finfo_close($finfo);
 
-// Verificar que es una imagen
-if (!preg_match('/^image\//', $mime_type)) {
+// Verificar que es una imagen y establecer el Content-Type correcto
+$allowed_types = [
+    'image/jpeg' => ['jpg', 'jpeg'],
+    'image/png' => ['png'],
+    'image/gif' => ['gif'],
+    'image/webp' => ['webp']
+];
+
+$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+$is_allowed = false;
+
+foreach ($allowed_types as $mime => $exts) {
+    if (in_array($extension, $exts)) {
+        $mime_type = $mime;
+        $is_allowed = true;
+        break;
+    }
+}
+
+if (!$is_allowed) {
     logError("Tipo de archivo no permitido: " . $mime_type);
     http_response_code(403);
     header('Content-Type: application/json');
@@ -74,6 +92,10 @@ header('Content-Length: ' . filesize($filepath));
 header('Cache-Control: public, max-age=31536000');
 header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 31536000));
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', filemtime($filepath)));
+
+// Limpiar cualquier salida anterior
+ob_clean();
+flush();
 
 // Enviar la imagen
 readfile($filepath);

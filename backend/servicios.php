@@ -45,15 +45,42 @@ if (!file_exists('uploads')) {
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['image'])) {
     $imagePath = 'uploads/' . basename($_GET['image']);
     logError("Intentando servir imagen: " . $imagePath);
+    
     if (file_exists($imagePath)) {
-        $mime = mime_content_type($imagePath);
-        header('Content-Type: ' . $mime);
-        readfile($imagePath);
-        exit;
+        // Obtener la extensión del archivo
+        $extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
+        
+        // Mapeo de extensiones a tipos MIME
+        $mime_types = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp'
+        ];
+        
+        // Verificar si es una extensión permitida
+        if (isset($mime_types[$extension])) {
+            // Limpiar cualquier salida anterior
+            ob_clean();
+            flush();
+            
+            // Establecer las cabeceras apropiadas
+            header('Content-Type: ' . $mime_types[$extension]);
+            header('Content-Length: ' . filesize($imagePath));
+            header('Cache-Control: public, max-age=31536000');
+            header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 31536000));
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s \G\M\T', filemtime($imagePath)));
+            
+            // Servir la imagen
+            readfile($imagePath);
+            exit;
+        }
     }
-    logError("Imagen no encontrada: " . $imagePath);
+    logError("Imagen no encontrada o tipo no permitido: " . $imagePath);
     http_response_code(404);
-    echo json_encode(['error' => 'Image not found']);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Image not found or invalid type']);
     exit;
 }
 
