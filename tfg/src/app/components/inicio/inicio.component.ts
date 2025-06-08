@@ -13,13 +13,23 @@ export class InicioComponent implements OnInit {
 
   imagenesAdmitidas: Imagen[] = [];
   imagenesRanking: Imagen[] = [];
-  idUsuario = localStorage.getItem('usuario');
   votosUsuario: number[] = [];
+  private usuario: any = null;
 
   constructor(
     private imagenService: ImagenService, 
     private router: Router,
-  ) { }
+  ) { 
+    // Initialize user data from localStorage
+    const usuarioData = localStorage.getItem('usuario');
+    if (usuarioData) {
+      try {
+        this.usuario = JSON.parse(usuarioData);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  }
 
   ngOnInit(): void {
     this.cargarImagenesAdmitidas();
@@ -65,9 +75,8 @@ export class InicioComponent implements OnInit {
   }
 
   cargarVotosUsuario() {
-    const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
-    if (usuario && usuario.id) {
-      this.imagenService.obtenerVotosUsuario(usuario.id).subscribe({
+    if (this.usuario?.id) {
+      this.imagenService.obtenerVotosUsuario(this.usuario.id).subscribe({
         next: (votos) => {
           console.log('Votos del usuario:', votos);
           this.votosUsuario = votos || [];
@@ -89,8 +98,7 @@ export class InicioComponent implements OnInit {
   }
 
   miPerfil() {
-    const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
-    if (!usuario || !usuario.id) {
+    if (!this.usuario?.id) {
       alert('Debes iniciar sesión para ver tu perfil');
       this.router.navigate(['/']);
       return;
@@ -101,15 +109,14 @@ export class InicioComponent implements OnInit {
   votarImagen(id_imagen: number) {
     console.log('Intentando votar imagen:', id_imagen);
     
-    const usuario = this.idUsuario ? JSON.parse(this.idUsuario) : null;
-    if (!usuario || !usuario.id) {
+    if (!this.usuario?.id) {
       alert('Debes iniciar sesión para votar');
       return;
     }
 
     // Validar que los IDs sean números válidos
     const idImagenNum = Number(id_imagen);
-    const idUsuarioNum = Number(usuario.id);
+    const idUsuarioNum = Number(this.usuario.id);
 
     if (isNaN(idImagenNum) || idImagenNum <= 0) {
       console.error('ID de imagen inválido:', id_imagen);
@@ -118,7 +125,7 @@ export class InicioComponent implements OnInit {
     }
 
     if (isNaN(idUsuarioNum) || idUsuarioNum <= 0) {
-      console.error('ID de usuario inválido:', usuario.id);
+      console.error('ID de usuario inválido:', this.usuario.id);
       alert('Error: ID de usuario inválido');
       return;
     }
