@@ -104,15 +104,18 @@ export class SubirImagenesComponent implements OnInit {
         this.id_usuario,
         this.form.get('titulo')?.value
       ).subscribe({
-        next: (event) => {
+        next: (event: any) => {
           if (event.type === HttpEventType.UploadProgress) {
             this.uploadProgress = Math.round(100 * event.loaded / (event.total || event.loaded));
-          } else if (event.type === HttpEventType.Response) {
-            if (event.body?.success) {
-              console.log('Imagen subida exitosamente:', event.body);
+          } else if (event instanceof HttpResponse || !event.type) {
+            console.log('Respuesta del servidor:', event);
+            // Si la respuesta es exitosa o contiene datos, navegar al perfil
+            if (event.body?.success || event.success) {
+              console.log('Imagen subida exitosamente');
               this.router.navigate(['/perfil']);
             } else {
-              this.uploadError = event.body?.error || 'Error desconocido al subir la imagen';
+              this.uploadError = (event.body?.error || event.error || 'Error desconocido al subir la imagen');
+              console.error('Error en la respuesta:', this.uploadError);
             }
           }
         },
@@ -124,6 +127,12 @@ export class SubirImagenesComponent implements OnInit {
             this.uploadError = error.message;
           } else {
             this.uploadError = 'Error desconocido al subir la imagen';
+          }
+        },
+        complete: () => {
+          console.log('Subida completada');
+          if (!this.uploadError) {
+            this.router.navigate(['/perfil']);
           }
         }
       });
